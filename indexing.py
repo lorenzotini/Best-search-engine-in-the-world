@@ -125,11 +125,18 @@ def intersect_range(A: list, B: list, rng: int) -> list:
 times_skip = [[2, 3, 16], [12, None, None], [15, None, None], [16, 6, 27], [17, None, None], [23, None, None], [27, None, None]]
 square_skip = [[3, 2, 12], [8, None, None], [12, 4, 23], [19, None, None], [23, None, None]]
 
-print(intersect_skip(times_skip, square_skip))
 
 #Posting lists with document-internal positional information.
 #Entries take the form [docID, [pos1, pos2, ...]]
 times_range = [[2, [15, 128]], [12, [6, 45, 89, 942]], [15, [13]], [16, [1276, 1500]], [17, [13, 89, 90]], [23, [17, 64]], [27, [456, 629]]]
 square_range = [[3, [65, 90]], [8, [67, 94]], [12, [3]], [19, [18, 81, 1881]], [23, [63]]]
 
-print(intersect_range(times_range, square_range, 3))
+words_dict_skip = {}
+words_dict_skip['times'] = times_skip
+words_dict_skip['square'] = square_skip
+print(intersect_skip(words_dict_skip['times'], words_dict_skip['square']))
+
+words_dict_range = {}
+words_dict_range['times'] = times_range
+words_dict_range['square'] = square_range
+print(intersect_range(words_dict_range['times'], words_dict_range['square'], 3))
