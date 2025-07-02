@@ -5,14 +5,29 @@ from nltk.stem import WordNetLemmatizer
 from bs4 import BeautifulSoup
 import math
 
-""" nltk.download("punkt")
-nltk.download("stopwords")
-nltk.download("wordnet")
- """
+
 stop_words = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
 
 def preprocess_text(text):
+    """Preprocesses a raw text string by cleaning, tokenizing, removing stopwords, and lemmatizing.
+
+    This function performs several preprocessing steps:
+        - Removes HTML tags using BeautifulSoup
+        - Converts text to lowercase
+        - Removes non-alphabetic characters
+        - Normalizes whitespace
+        - Tokenizes text into words
+        - Removes English stopwords
+        - Lemmatizes each token
+        - Discards tokens shorter than 3 characters
+
+    Args:
+        text (str): The raw input text (potentially containing HTML tags) to preprocess.
+
+    Returns:
+        List[str]: A list of cleaned and lemmatized word tokens.
+    """
     # Remove HTML using BeautifulSoup (more robust)
     text = BeautifulSoup(text, "html.parser").get_text()
 
@@ -35,17 +50,36 @@ def preprocess_text(text):
     return filtered_tokens
 
 
-def save_document_skip_pointers(docs, skip_dict):
+def save_document_skip_pointers(corpus):
+    """Builds an inverted index with skip pointers from a collection of documents.
+
+    Each token in the resulting index maps to a list of `[doc_id, skip_index, skip_target_doc_id]` entries,
+    where skip pointers allow skipping over some entries during query processing.
+
+    Skip pointers are placed at intervals of approximately sqrt(n), where n is the number
+    of document IDs for that token.
+
+    Args:
+        corpus (List[List[str, int]]): A list of documents. Each document is a pair:
+            - text (str): The content of the document.
+            - doc_id (int): A unique identifier for the document.
+        
+    Returns:
+        dict: A dictionary that will be populated with the inverted index. 
+            Each key is a token (str), and each value is a list of triples:
+            `[doc_id, skip_index, skip_doc_id]`.
+    """
     token_to_ids = {}
+    skip_dict = {}
 
     # Process every document
-    for doc in docs:
+    for doc in corpus:
 
         # Extract raw text from document and preprocess it into tokens
         tokens = preprocess_text(doc[0])
 
         # Save document ID
-        doc_id = doc[1]
+        doc_id = doc[1] 
 
         # For every token, create a list containing the IDs of the documents in which the token is present
         for token in tokens:
@@ -75,10 +109,11 @@ def save_document_skip_pointers(docs, skip_dict):
             skip_pointers.append([id, index_to_skip, doc_at_that_index])
         
         skip_dict[token] = skip_pointers
+    
+    return skip_dict
 
 
 
-skip_dict = {}
 corpus = [
     ['The government released new policy data on cybersecurity and public infrastructure today in a national press briefing.', 0],
     ['Experts argue the policy reform is essential for national security and government system resilience against threats.', 1],
@@ -93,7 +128,8 @@ corpus = [
 ]
 
 
-save_document_skip_pointers(corpus, skip_dict)
+skip_dict = save_document_skip_pointers(corpus)
 
-for entry, value in skip_dict.items():
-    print(entry, value)
+from index import intersect_skip
+
+print(intersect_skip(skip_dict['government'], skip_dict['new']))
