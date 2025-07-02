@@ -4,6 +4,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from bs4 import BeautifulSoup
 import math
+from collections import defaultdict
 
 
 stop_words = set(stopwords.words("english"))
@@ -50,7 +51,7 @@ def preprocess_text(text):
     return filtered_tokens
 
 
-def save_document_skip_pointers(corpus):
+def build_skip_pointers(corpus):
     """Builds an inverted index with skip pointers from a collection of documents.
 
     Each token in the resulting index maps to a list of `[doc_id, skip_index, skip_target_doc_id]` entries,
@@ -73,13 +74,10 @@ def save_document_skip_pointers(corpus):
     skip_dict = {}
 
     # Process every document
-    for doc in corpus:
+    for text, doc_id in corpus:
 
         # Extract raw text from document and preprocess it into tokens
-        tokens = preprocess_text(doc[0])
-
-        # Save document ID
-        doc_id = doc[1] 
+        tokens = preprocess_text(text)
 
         # For every token, create a list containing the IDs of the documents in which the token is present
         for token in tokens:
@@ -112,7 +110,29 @@ def save_document_skip_pointers(corpus):
     
     return skip_dict
 
+def build_positional_index(corpus):
+    """Builds a positional index from a corpus of documents.
 
+    Args:
+        corpus (List[List[str, int]]): List of [text, doc_id] pairs.
+
+    Returns:
+        Dict[str, List[List[int, List[int]]]]: Token-to-postings dictionary.
+            Example: { "word": [[doc_id1, [pos1, pos2]], [doc_id2, [pos3, ...]]] }
+    """
+    index = defaultdict(lambda: defaultdict(list))  # token -> {doc_id: [positions]}
+
+    for text, doc_id in corpus:
+        tokens = preprocess_text(text)
+        for position, token in enumerate(tokens):
+            index[token][doc_id].append(position)
+
+    # Convert inner dicts to lists for final output format
+    final_index = {}
+    for token, doc_dict in index.items():
+        final_index[token] = [[doc_id, positions] for doc_id, positions in doc_dict.items()]
+
+    return final_index
 
 corpus = [
     ['The government released new policy data on cybersecurity and public infrastructure today in a national press briefing.', 0],
@@ -128,8 +148,11 @@ corpus = [
 ]
 
 
-skip_dict = save_document_skip_pointers(corpus)
 
-from index import intersect_skip
+from index import intersect_skip, intersect_range
 
+skip_dict = build_skip_pointers(corpus)
 print(intersect_skip(skip_dict['government'], skip_dict['new']))
+
+pos_index_dict = build_positional_index(corpus)
+print(intersect_range(pos_index_dict['government'], pos_index_dict['new'], 5))
