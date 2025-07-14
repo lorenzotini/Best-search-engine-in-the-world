@@ -13,12 +13,20 @@ from collections import defaultdict
 from langdetect import detect_langs
 
 
+from main import preprocess_query
+
 # Ensure stopwords are available
 import nltk
 try:
     stopwords.words("english")
 except LookupError:
     nltk.download("stopwords")
+
+try:
+    nltk.data.find("tokenizers/punkt")
+except LookupError:
+    nltk.download("punkt")
+
 
 
 
@@ -33,11 +41,8 @@ class OfflineCrawler:
         self.max_depth = max_depth
         self.delay = delay
 
-        self.path_to_crawled_data = 'crawled_data.pkl'
+        self.path_to_crawled_data = 'data/crawled_data.pkl'
         self.crawled_data = self._load(self.path_to_crawled_data)
-        
-        self.path_to_posting_lists = 'posting_list.pkl'
-        self.skip_dict, self.pos_index_dict = self._load(self.path_to_posting_lists)
         
 
     def run(self):
@@ -76,15 +81,6 @@ class OfflineCrawler:
                         frontier.append((href, depth + 1))
 
             time.sleep(self.delay)
-        
-        print('Indexing...')
-        self.crawled_data = self._load(self.path_to_crawled_data)
-        self._build_skip_pointers(self.crawled_data)
-        self._build_positional_index(self.crawled_data)
-        
-        print("Saving posting lists...")
-        self._save_posting_lists()
-        print("Done.")
 
 
     def _get_id(self, url):
@@ -129,6 +125,45 @@ class OfflineCrawler:
         return filtered_tokens
 
 
+    def _save_crawled(self, doc_id, tokens):
+        self.crawled_data.update({doc_id : tokens})
+
+        with open(self.path_to_crawled_data, "wb") as f:
+            pickle.dump(self.crawled_data, f)
+
+
+    def _load(self, path):
+        try:
+            with open(path, "rb") as f:
+                data = pickle.load(f)
+            return data
+        except FileNotFoundError:
+            print("[INFO] No previous crawl data found, starting fresh.")
+            return {}
+
+    
+class Indexer:
+    def __init__(self):
+        self.path_to_TFs = 'data/tfs.pkl'
+        self.path_to_IDFs = 'data/idfs.pkl'
+        self.path_to_crawled_data = 'data/crawled_data.pkl'
+        self.path_to_posting_lists = 'data/posting_list.pkl'
+        
+        self.crawled_data = self._load(self.path_to_crawled_data)
+        self.skip_dict, self.pos_index_dict = self._load(self.path_to_posting_lists)
+
+
+    def index_documents(self):
+        print('Indexing...')
+        self._build_skip_pointers(self.crawled_data)
+        self._build_positional_index(self.crawled_data)
+        
+        print("Saving posting lists...")
+        with open(self.path_to_posting_lists, "wb") as f:
+            pickle.dump((self.skip_dict, self.pos_index_dict), f)
+        print("Done.")
+
+
     def _build_skip_pointers(self, crawled_data):
         token_to_ids = {}
         skip_dict = {}
@@ -138,7 +173,7 @@ class OfflineCrawler:
 
             # For every token, create a list containing the IDs of the documents in which the token is present
             for token in tokens:
-                if token_to_ids.get(token) is None:    # First time we see this term -> initialize it
+                if token not in token_to_ids:    # First time we see this term -> initialize it
                     token_to_ids[token] = [doc_id]
                 elif doc_id in token_to_ids[token]:
                     continue
@@ -184,16 +219,51 @@ class OfflineCrawler:
         self.pos_index_dict = final_index
 
 
-    def _save_crawled(self, doc_id, tokens):
-        self.crawled_data.update({doc_id : tokens})
+    def build_TF(self):
+        tf_list = []
+        for id, tokens in self.crawled_data.items():            
+            # build term-frequency dictionary
+            bow = {}
+            for word in tokens:
+                bow[word] = bow.get(word, 0) + 1
+            
+            tf_list.append(bow)
+        # Save data in file
+        with open(self.path_to_TFs, "wb") as f:
+            pickle.dump(tf_list, f)
 
-        with open(self.path_to_crawled_data, "wb") as f:
-            pickle.dump(self.crawled_data, f)
 
+    #Estimate inverse document frequencies based on a corpus of documents.
+    def build_IDF(self):
+        idfs = {}
+        D = len(self.crawled_data)
+        # TODO remove this printf after verified that it is correct
+        print("\nNumber of document in the corpus: ", D, "\ndelete this print pls\n")
+        # Dts = {key: str, value: (Dt_value: int, seen_in_this_doc: bool)}
+        Dts = {}
+        for doc_id, tokens in self.crawled_data.items(): # TODO .items()?
 
-    def _save_posting_lists(self):
-        with open(self.path_to_posting_lists, "wb") as f:
-            pickle.dump((self.skip_dict, self.pos_index_dict), f)
+            # Reset visited values, since we are visiting a new document
+            for key, (num, _) in Dts.items():
+                Dts[key] = (num, False)
+
+            for word in tokens:
+                if Dts.get(word) is None:    # First time we see this term -> initialize it
+                    Dts[word] = (1, True)
+                elif Dts[word][1] is False:  # Dt already contains an entry for this term but is the first time we see it in this doc
+                    Dts[word] = (Dts[word][0] + 1, True)   # Increment its frequency and toggle bool
+                elif Dts[word][1] is True:
+                    continue                # We've already seen this term in this doc
+                else:
+                    raise Exception('Something went wrong during building idfs.')
+        
+        for k, v in Dts.items():
+            Dt = v[0]
+            idfs[k] = math.log(D/Dt, 10)
+            
+        # Save data in file
+        with open(self.path_to_IDFs, "wb") as f:
+            pickle.dump(idfs, f)
 
 
     def _load(self, path):
@@ -211,10 +281,71 @@ class OfflineCrawler:
             else:
                 raise  # re-raise for unknown files
 
+
+class BM25:
+
+    def __init__(self):
+        self.path_to_TFs = 'data/tfs.pkl'
+        self.path_to_IDFs = 'data/idfs.pkl'
+        self.tf_data = self._load(self.path_to_TFs)
+        self.idfs = self._load(self.path_to_IDFs)
     
+    
+    def _load(self, path):
+        try:
+            with open(path, "rb") as f:
+                data = pickle.load(f)
+            return data
+        except FileNotFoundError:
+            print("[INFO] File not found.")
+            return {}
+
+
+    def compute_doc_lengths(self, tf_data):
+        return [sum(doc.values()) for doc in tf_data]
+
+
+    def bm25_score(self, query, doc_index, doc_lengths, avgdl, k1=1.5, b=0.75):
+        score = 0.0
+        doc_len = doc_lengths[doc_index]
+        for term in query:
+            tf = self.tf_data[doc_index].get(term.lower(), 0)
+            idf = self.idfs.get(term, 0)    # TODO we could also add smoothing to deal with Out Of Vocabulary terms
+            denom = tf + k1 * (1 - b + b * doc_len / avgdl)
+            if denom > 0:
+                score += idf * ((tf * (k1 + 1)) / denom)
+        return score
+
+
+    def bm25_ranking(self, query):
+        doc_lengths = self.compute_doc_lengths(self.tf_data)
+        avgdl = sum(doc_lengths) / len(doc_lengths)
+
+        scores = []
+        for i in range(len(self.tf_data)):  # TODO check if it is right to use len(self.tf_data)
+            score = self.bm25_score(query, i, doc_lengths, avgdl)
+            scores.append((i, score))
+        
+        # Sort by score descending
+        return sorted(scores, key=lambda x: x[1], reverse=True)
+
+
+########################################################################################
 
 seeds = ["https://example.com"]
 crawler = OfflineCrawler(seeds, max_depth=1)
-pages = crawler.run()
+crawler.run()
+indexer = Indexer()
+indexer.index_documents()
+indexer.build_TF()
+indexer.build_IDF()
 
-post = crawler._load('posting_list.pkl')
+query = 'traffic'
+query = preprocess_query(query)
+
+model = BM25()
+
+ranking = model.bm25_ranking(query)
+
+for doc_idx, score in ranking:
+    print(f"Document {doc_idx}: BM25 score = {score:.4f}")
