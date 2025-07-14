@@ -39,6 +39,7 @@ class OfflineCrawler:
         self.path_to_posting_lists = 'posting_list.pkl'
         self.skip_dict, self.pos_index_dict = self._load(self.path_to_posting_lists)
         
+
     def run(self):
         frontier = deque([(url, 0) for url in self.seeds])
         visited = set()
@@ -63,6 +64,7 @@ class OfflineCrawler:
             # Just save the data and not compute the posting list, so it can be done at the end of the crawling
             # process only one time (useful for skip pointers). Also, disconnection resistant
             self._save_crawled(doc_id, tokens)
+
 
             # enqueue links if depth allows
             if depth < self.max_depth:
@@ -105,7 +107,7 @@ class OfflineCrawler:
             pass
         if not any(l.lang == "en" and l.prob >= 0.9 for l in langs):
             print(f"[SKIP] non-English")
-            # TODO returnare qualcosa
+            # TODO return something
             return
         
         # Lowercase
@@ -118,7 +120,7 @@ class OfflineCrawler:
         # Tokenize
         tokens = word_tokenize(text)
 
-        # Filter stopwords and stem words
+        # Filter stopwords and lemmatize words
         filtered_tokens = [
             lemmatizer.lemmatize(token) for token in tokens
             if token not in stop_words and len(token) > 2
@@ -181,15 +183,18 @@ class OfflineCrawler:
 
         self.pos_index_dict = final_index
 
+
     def _save_crawled(self, doc_id, tokens):
         self.crawled_data.update({doc_id : tokens})
 
         with open(self.path_to_crawled_data, "wb") as f:
             pickle.dump(self.crawled_data, f)
 
+
     def _save_posting_lists(self):
         with open(self.path_to_posting_lists, "wb") as f:
             pickle.dump((self.skip_dict, self.pos_index_dict), f)
+
 
     def _load(self, path):
         try:
@@ -213,4 +218,3 @@ crawler = OfflineCrawler(seeds, max_depth=1)
 pages = crawler.run()
 
 post = crawler._load('posting_list.pkl')
-a = 0
