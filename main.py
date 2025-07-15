@@ -3,6 +3,10 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 
+from crawling import OfflineCrawler
+from indexer import Indexer
+from bm25 import BM25
+
 
 # Ensure stopwords are available
 import nltk
@@ -35,3 +39,27 @@ def preprocess_query(text):
     ]
 
     return filtered_tokens
+
+
+
+
+seeds = ["https://example.com/"]
+
+crawler = OfflineCrawler(seeds, max_depth=2)
+crawler.run()
+
+indexer = Indexer()
+indexer.run()
+
+
+query = 'traffic'
+query = preprocess_query(query)
+
+model = BM25()
+ranking = model.bm25_ranking(query)
+
+for doc_idx, score in ranking:
+    print(f"Document {doc_idx}: BM25 score = {score:.4f}")
+
+
+# TODO whats inside the pkl docs if i re run the crawler and indexer?
