@@ -37,10 +37,13 @@ class Indexer:
         skip_dict = {}
 
         # Process every document
-        for doc_id, tokens in crawled_data.items():
+        for doc_id, doc_data in crawled_data.items():
+            tokens = doc_data.get("tokens")
+            
             # TODO fix this check
             if tokens is None:
                 continue
+
             # For every token, create a list containing the IDs of the documents in which the token is present
             for token in tokens:
                 if token not in token_to_ids:    # First time we see this term -> initialize it
@@ -77,7 +80,8 @@ class Indexer:
 
         index = defaultdict(lambda: defaultdict(list))  # token -> {doc_id: [positions]}
 
-        for doc_id, tokens in crawled_data.items():
+        for doc_id, doc_data in crawled_data.items():
+            tokens = doc_data.get("tokens")
             # TODO fix this check
             if tokens is None:
                 continue
@@ -94,9 +98,10 @@ class Indexer:
 
     def _build_TF(self):
         tf_list = []
-        for id, tokens in self.crawled_data.items():            
+        for doc_id, doc_data in self.crawled_data.items():            
             # build term-frequency dictionary
             bow = {}
+            tokens = doc_data.get("tokens")
             # TODO fix this check
             if tokens is None:
                 continue
@@ -117,7 +122,8 @@ class Indexer:
         print("\nNumber of document in the corpus: ", D, "\ndelete this print pls\n")
         # Dts = {key: str, value: (Dt_value: int, seen_in_this_doc: bool)}
         Dts = {}
-        for doc_id, tokens in self.crawled_data.items(): # TODO .items()?
+        for doc_id, doc_data in self.crawled_data.items(): # TODO .items()?
+            tokens = doc_data.get("tokens")
             # TODO fix this check
             if tokens is None:
                 continue
