@@ -315,6 +315,8 @@ class DynamicDomainCrawler:
                 if (self.time_limit and elapsed >= self.time_limit) or \
                    (self.max_new_pages and self.new_pages_count >= self.max_new_pages):
                     self.stop_event.set()
+                    q.task_done()
+                    break
 
             links = self._process(url, depth)
             for dom2, href, d2, prio in links:
@@ -342,6 +344,13 @@ class DynamicDomainCrawler:
                                              args=(dom,), daemon=True)
                         self.active_threads[dom] = t
                         t.start()
+            with self.domain_lock:
+                no_tasks = all(q.empty() for q in self.domain_queues.values())
+                no_workers = len(self.active_threads) == 0
+            if no_tasks and no_workers:
+                print("[MANAGER] no tasks & no workers → stopping crawl")
+                self.stop_event.set()
+                break
             time.sleep(0.5)
         print("[MANAGER] stopping")
 
