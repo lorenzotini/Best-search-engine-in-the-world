@@ -1,6 +1,7 @@
 from collections import defaultdict
 import pickle
 import math
+import os
 
 
 class Indexer:
@@ -37,7 +38,9 @@ class Indexer:
 
         # Process every document
         for doc_id, tokens in crawled_data.items():
-
+            # TODO fix this check
+            if tokens is None:
+                continue
             # For every token, create a list containing the IDs of the documents in which the token is present
             for token in tokens:
                 if token not in token_to_ids:    # First time we see this term -> initialize it
@@ -75,6 +78,9 @@ class Indexer:
         index = defaultdict(lambda: defaultdict(list))  # token -> {doc_id: [positions]}
 
         for doc_id, tokens in crawled_data.items():
+            # TODO fix this check
+            if tokens is None:
+                continue
             for position, token in enumerate(tokens):
                 index[token][doc_id].append(position)
 
@@ -91,6 +97,9 @@ class Indexer:
         for id, tokens in self.crawled_data.items():            
             # build term-frequency dictionary
             bow = {}
+            # TODO fix this check
+            if tokens is None:
+                continue
             for word in tokens:
                 bow[word] = bow.get(word, 0) + 1
             
@@ -109,7 +118,9 @@ class Indexer:
         # Dts = {key: str, value: (Dt_value: int, seen_in_this_doc: bool)}
         Dts = {}
         for doc_id, tokens in self.crawled_data.items(): # TODO .items()?
-
+            # TODO fix this check
+            if tokens is None:
+                continue
             # Reset visited values, since we are visiting a new document
             for key, (num, _) in Dts.items():
                 Dts[key] = (num, False)
@@ -147,3 +158,17 @@ class Indexer:
                 return {}, {}
             else:
                 raise  # re-raise for unknown files
+
+"""     def _load(self, path):
+        if not os.path.exists(path):
+            print("[INFO] No previous crawl data found, starting fresh.")
+            return {}
+        if os.path.getsize(path) == 0:
+            print("[INFO] Found empty crawl data file, starting fresh.")
+            return {}
+        with open(path, 'rb') as f:
+            data = pickle.load(f)
+        return data """
+    
+
+        
