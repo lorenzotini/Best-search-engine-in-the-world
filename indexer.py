@@ -271,12 +271,12 @@ class Indexer:
                 i += 1
                 j += 1
             elif A[i][0] < B[j][0]:
-                if _can_skip(A[i], B[j][0]):
+                if self._can_skip(A[i], B[j][0]):
                     i = A[i][1]
                     continue
                 i += 1
             elif A[i][0] > B[j][0]:
-                if _can_skip(B[j], A[i][0]):
+                if self._can_skip(B[j], A[i][0]):
                     j = B[j][1]
                     continue
                 j += 1
@@ -338,7 +338,7 @@ class Indexer:
             docA, posA = A[i]
             docB, posB = B[j]
             if docA == docB:
-                if _in_range(posA, posB, rng):
+                if self._in_range(posA, posB, rng):
                     matches.append(docA)
                 i += 1
                 j += 1
