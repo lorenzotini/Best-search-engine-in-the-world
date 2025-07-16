@@ -550,3 +550,9 @@ if __name__ == "__main__":
 # TODO sembra che bm25 non funzioni: alla query Traffic il primo risultato manco contiene il termine
 # TODO stampare solo le prime 10 results del ranking
 # TODO controllare che non sparisca il log file: ora scompare se runno crawl, interrupt, run indexer
+
+
+def search(query):
+    q = preprocess_query(query)
+    model = BM25()
+    ranking = model.bm25_ranking(query)
