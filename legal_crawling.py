@@ -65,52 +65,29 @@ class OfflineCrawler:
         # This is what websites will see in their logs and what robots.txt rules apply to.
         # IMPORTANT: REPLACE with your actual contact URL!
         self.user_agent = "TübingenSearchBot_UniProject/4.20 (https://alma.uni-tuebingen.de/alma/pages/startFlow.xhtml?_flowId=detailView-flow&unitId=78284&periodId=228&navigationPosition=studiesOffered,searchCourses)" 
-
-        # NEW: Target keywords for relevance scoring
-        self.target_keywords = {
-            # Core Geographic & Identity Keywords
-            "tuebingen", "tubingen", "university", "universität", "eberhard karls universität",
-            "neckar", "altstadt", "hohentuebingen", "hohentübingen", "baden-wuerttemberg",
-            "baden-württemberg", "schwaebische alb", "schwübische alb", "schoenbuch", "schönbuch",
-
-            # General Town Life & Categories
-            "city", "town", "municipality", "community", "kreis tuebingen", "information",
-            "news", "events", "tourism", "travel", "visitors", "sights", "attractions",
-            "living", "citizens", "local", "region", "regional",
-
-            # Education & Research
-            "study", "students", "research", "science", "university hospital", "uniklinik",
-            "excellence university", "institute", "faculty", "cyber valley",
-
-            # Culture & Arts
-            "culture", "art", "theater", "theatre", "museums", "exhibitions", "music",
-            "cinema", "books", "literature", "galleries",
-
-            # Events & Festivals (Keep specific German names as they are unique identifiers)
-            "stocherkahnrennen", "chocolart", "christmas market", "weihnachtsmarkt",
-            "city festival", "stadtfest", "umbrisch-provenzalischer markt",
-            "jazz & klassik tage", "sommernachtskino", "fasnet", "karneval", "festivals",
-
-            # Economy & Business
-            "companies", "businesses", "jobs", "work", "economy", "trade", "commerce",
-            "retail", "startups", "industry", "services",
-
-            # Food & Gastronomy
+            
+         # NEW: Tiered keywords for weighted priority
+        self.very_relevant_keywords = {
+            "tuebingen", "tubingen", "eberhard karls universität", "hohentuebingen", "hohentübingen",
+            "stocherkahnrennen", "chocolart", "university", "universität", "neckar", "altstadt", "baden-wuerttemberg", "baden-württemberg"
+        }
+        self.relevant_keywords = {
+            "city", "stadtfest", "cyber valley", "uniklinik", "university hospital", "tourism", "visitors",
             "restaurants", "cafes", "gastronomy", "food", "drinks", "bars", "bakery",
-            "butcher", "market", "wochenmarkt",
-
-            # Accommodation
-            "hotels", "accommodation", "holiday apartments", "guesthouses", "youth hostel",
-
-            # Daily Life & Services
-            "housing", "living", "real estate", "traffic", "public transport", "parking",
-            "health", "doctors", "pharmacies", "schools", "kindergartens", "sport",
-            "clubs", "associations", "town hall", "administration", "waste", "building",
-
-            # Surrounding Towns & Villages (within Tübingen County/Region)
+            "butcher", "market", "wochenmarkt","schwaebische alb", "schwübische alb", "schoenbuch", "schönbuch",
+            "umbrisch-provenzalischer markt","jazz & klassik tage", "sommernachtskino"
+        }
+        self.moderately_relevant_keywords = {
+            "community", "information", "news", "events", "travel", "sights", "attractions", "living",
+            "citizens", "local", "region", "research", "science", "study", "students",
             "reutlingen", "rottenburg am neckar", "moessingen", "mössingen",
             "kirchentellinsfurt", "ammerbuch", "dusslingen", "dußlingen", "gomaringen",
-            "kusterdingen", "ofterdingen", "nehren", "dettenhausen"
+            "kusterdingen", "ofterdingen", "nehren", "dettenhausen",
+             "housing", "living", "real estate", "traffic", "public transport", "parking",
+            "health", "doctors", "pharmacies", "schools", "kindergartens", "sport",
+            "clubs", "associations", "town hall", "administration", "waste", "building",
+            "culture", "art", "theater", "theatre", "museums", "exhibitions", "music",
+            "cinema", "books", "literature", "galleries"
         }
 
 
@@ -326,38 +303,56 @@ class OfflineCrawler:
     # NEW/MODIFIED METHOD: _calculate_priority
     def _calculate_priority(self, url, anchor_text, source_page_tokens, current_depth):
         score = 0
+        print("using new priority queuing method")
+        # Define weights for each relevance tier
+        VERY_RELEVANT_WEIGHT = 20
+        RELEVANT_WEIGHT = 10
+        MODERATELY_RELEVANT_WEIGHT = 5
+        DEPTH_PENALTY_WEIGHT = 5
 
         # 1. Anchor Text Relevance (Highest Impact)
         if anchor_text:
-            # _clean_for_scoring now returns a list of tokens, convert to set for intersection
             cleaned_anchor_text_tokens = set(self._clean_for_scoring(anchor_text))
-            common_keywords = cleaned_anchor_text_tokens.intersection(self.target_keywords)
-            score += len(common_keywords) * 10 # Strong indicator, more keywords means higher score
-        
+            
+            # Check against each tier
+            common_vr_keywords = cleaned_anchor_text_tokens.intersection(self.very_relevant_keywords)
+            common_r_keywords = cleaned_anchor_text_tokens.intersection(self.relevant_keywords)
+            common_mr_keywords = cleaned_anchor_text_tokens.intersection(self.moderately_relevant_keywords)
+            
+            score += len(common_vr_keywords) * VERY_RELEVANT_WEIGHT
+            score += len(common_r_keywords) * RELEVANT_WEIGHT
+            score += len(common_mr_keywords) * MODERATELY_RELEVANT_WEIGHT
+
         # 2. URL Keyword Relevance (High Impact)
         parsed_url = urlparse(url)
-        # Check domain/netloc, path, and query parameters
         url_components_text = (parsed_url.netloc + parsed_url.path + parsed_url.query).lower()
-        # Convert URL components to tokens for consistent checking
         url_components_tokens = set(self._clean_for_scoring(url_components_text)) 
-        common_keywords_url = url_components_tokens.intersection(self.target_keywords)
-        score += len(common_keywords_url) * 7 # Keywords in URL are very good
+        
+        common_vr_url = url_components_tokens.intersection(self.very_relevant_keywords)
+        common_r_url = url_components_tokens.intersection(self.relevant_keywords)
+        common_mr_url = url_components_tokens.intersection(self.moderately_relevant_keywords)
+        
+        score += len(common_vr_url) * VERY_RELEVANT_WEIGHT
+        score += len(common_r_url) * RELEVANT_WEIGHT
+        score += len(common_mr_url) * MODERATELY_RELEVANT_WEIGHT
 
         # 3. Source Page Context Relevance (Medium Impact)
         if source_page_tokens:
-            # source_page_tokens are already a list of tokens from _clean_for_scoring
             source_tokens_set = set(source_page_tokens)
-            common_keywords_source = source_tokens_set.intersection(self.target_keywords)
-            score += len(common_keywords_source) * 3 # Count how many target keywords are present
+            
+            common_vr_source = source_tokens_set.intersection(self.very_relevant_keywords)
+            common_r_source = source_tokens_set.intersection(self.relevant_keywords)
+            common_mr_source = source_tokens_set.intersection(self.moderately_relevant_keywords)
 
-        # 4. Depth Penalty (Crucial for controlled crawling)
-        score -= (current_depth * 5) # Heavier penalty for depth
+            score += len(common_vr_source) * (VERY_RELEVANT_WEIGHT / 2)
+            score += len(common_r_source) * (RELEVANT_WEIGHT / 2)
+            score += len(common_mr_source) * (MODERATELY_RELEVANT_WEIGHT / 2)
 
-        score = max(0, score) # Ensure score is not negative
+        # 4. Depth Penalty
+        score -= (current_depth * DEPTH_PENALTY_WEIGHT)
 
-        # For min-heap, higher actual priority means lower numeric value
-        return -score # Use negative score for min-heap to act as max-heap
-
+        score = max(0, score)
+        return -score
     # NEW/MODIFIED METHOD: _clean_for_scoring
     def _clean_for_scoring(self, text):
         """
@@ -549,15 +544,16 @@ class OfflineCrawler:
 
 # Example Usage (replace your existing example usage):
 if __name__ == "__main__":
-    seeds = ["http://example.com"] # Replace with actual seeds
-    crawler = OfflineCrawler(seeds, max_depth=1)
+    initial_seeds = ["https://en.wikipedia.org/wiki/T%C3%BCbingen"]
+    seeds = ["https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html"] # Replace with actual seeds
+    crawler = OfflineCrawler(seeds, max_depth=2)
     crawler.run()
 
 
 
-seeds = ["https://www.germany.travel/en/cities-culture/tuebingen.html"]
-crawler = OfflineCrawler(seeds, max_depth=1)
-pages = crawler.run()
+# seeds = ["https://www.germany.travel/en/cities-culture/tuebingen.html"]
+# crawler = OfflineCrawler(seeds, max_depth=1)
+# pages = crawler.run()
 
-post = crawler._load('posting_list.pkl')
-id = crawler._get_id("https://example.com")
+# post = crawler._load('posting_list.pkl')
+# id = crawler._get_id("https://example.com")
