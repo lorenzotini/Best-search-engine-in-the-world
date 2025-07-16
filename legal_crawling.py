@@ -1,27 +1,28 @@
+import sys
 import time
 import requests
 from urllib.parse import urljoin, urldefrag, urlparse, urlunparse 
 import nltk
+
+from bm25 import BM25
 nltk.download("stopwords", quiet=True)
 nltk.download("punkt_tab", quiet=True)
 nltk.download("wordnet", quiet=True)
 from nltk.corpus import stopwords
-from collections import deque
 import pickle
 from bs4 import BeautifulSoup
 import re
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-import math
-from collections import defaultdict
 from langdetect import detect_langs
 import heapq 
 import urllib.robotparser 
 import hashlib
-
+import logging
+import signal
+from indexer import Indexer
 
 # Ensure stopwords are available
-import nltk
 try:
     stopwords.words("english")
 except LookupError:
@@ -32,7 +33,15 @@ except LookupError:
 stop_words = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
 
-
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler("log/crawler.log", mode='a', encoding='utf-8'),  # Save logs to file (overwrite)
+        logging.StreamHandler()  # Print logs to console
+    ]
+)
 
 class OfflineCrawler:
     def __init__(self, seeds, max_depth=2, delay=0.5, simhash_threshold=3):
@@ -41,11 +50,13 @@ class OfflineCrawler:
         self.default_delay = delay # Store the default delay separately
         self.simhash_threshold = simhash_threshold
 
-        self.path_to_crawled_data = 'crawled_data.pkl'
-        self.path_to_simhashes = 'simhashes.pkl'
+        self.path_to_crawled_data = 'data/crawled_data.pkl'
+        self.path_to_simhashes = 'data/simhashes.pkl'
         
         self.crawled_data = self._load(self.path_to_crawled_data)
         self.seen_simhashes = self._load(self.path_to_simhashes)
+        
+        signal.signal(signal.SIGINT, self._handle_interrupt) 
         
         # Priority queue for frontier: (priority, url, depth)
         self.frontier = []
@@ -82,7 +93,7 @@ class OfflineCrawler:
             "reutlingen", "rottenburg am neckar", "moessingen", "mössingen",
             "kirchentellinsfurt", "ammerbuch", "dusslingen", "dußlingen", "gomaringen",
             "kusterdingen", "ofterdingen", "nehren", "dettenhausen",
-             "housing", "living", "real estate", "traffic", "public transport", "parking",
+            "housing", "living", "real estate", "traffic", "public transport", "parking",
             "health", "doctors", "pharmacies", "schools", "kindergartens", "sport",
             "clubs", "associations", "town hall", "administration", "waste", "building",
             "culture", "art", "theater", "theatre", "museums", "exhibitions", "music",
@@ -100,14 +111,13 @@ class OfflineCrawler:
                     priority = self._calculate_priority(url, "", [], 0)
                     heapq.heappush(self.frontier, (priority, url, 0))
                     self.visited_urls_in_queue.add(url)
-                    print(f"[INFO] Seed added to frontier: {url}") # New: confirm seed added
+                    logging.info(f"Seed added to frontier: {url}") # New: confirm seed added
                 else:
-                    print(f"[INFO] Skipping seed URL {url} due to robots.txt rules.")
+                    logging.info(f"Skipping seed URL {url} due to robots.txt rules.")
 
-        print(f"\n[START CRAWL] Frontier initialized with {len(self.frontier)} URLs.")
-        print(f"Max depth: {self.max_depth}, Default delay: {self.default_delay}s, SimHash threshold: {self.simhash_threshold}\n")
-
-
+        logging.info(f"[START CRAWL] Frontier initialized with {len(self.frontier)} URLs.")
+        logging.info(f"Max depth: {self.max_depth}, Default delay: {self.default_delay}s, SimHash threshold: {self.simhash_threshold}")
+       
         # Track some statistics
         crawled_count = 0
         skipped_robots = 0
@@ -120,12 +130,12 @@ class OfflineCrawler:
 
             # Check if this URL has been *processed* before (based on doc_id)
             if url in self.url_to_doc_id:
-                print(f"[INFO] Skipping {url} (already processed and indexed in a previous run).")
+                logging.info(f"Skipping {url} (already processed and indexed in a previous run).")
                 skipped_already_processed += 1
                 continue
 
             if depth > self.max_depth:
-                print(f"[INFO] Skipping {url} (max depth {self.max_depth} reached).")
+                logging.info(f"Skipping {url} (max depth {self.max_depth} reached).")
                 continue
 
             parsed_url = urlparse(url)
@@ -133,7 +143,7 @@ class OfflineCrawler:
 
             rp = self._get_robot_parser(url)
             if not rp.can_fetch(self.user_agent, url):
-                print(f"[ROBOTS] Skipping {url} due to robots.txt rules for {domain}.")
+                logging.info(f"[ROBOTS] Skipping {url} due to robots.txt rules for {domain}.")
                 skipped_robots += 1
                 continue
 
@@ -143,7 +153,7 @@ class OfflineCrawler:
                 time_since_last_fetch = time.time() - self.last_fetch_time[domain]
                 if time_since_last_fetch < required_delay:
                     sleep_duration = required_delay - time_since_last_fetch
-                    print(f"[DELAY] Sleeping for {sleep_duration:.2f}s for {domain} to respect crawl-delay.")
+                    logging.info(f"[DELAY] Sleeping for {sleep_duration:.2f}s for {domain} to respect crawl-delay.")
                     time.sleep(sleep_duration)
             
             self.last_fetch_time[domain] = time.time() 
@@ -151,14 +161,14 @@ class OfflineCrawler:
             # NEW: Start timer for fetch and process speed
             start_page_time = time.time()
 
-            print(f"\n[CRAWL] Fetching: {url} (Depth: {depth}, Priority: {-priority:.2f})") # Show priority
+            logging.info(f"\n[CRAWL] Fetching: {url} (Depth: {depth}, Priority: {-priority:.2f})") # Show priority
             try:
                 headers = {'User-Agent': self.user_agent}
                 resp = requests.get(url, headers=headers, timeout=10) # Increased timeout for robustness
                 resp.raise_for_status()
                 html = resp.text
             except requests.exceptions.RequestException as e:
-                print(f"[ERROR] Failed to fetch {url}: {e}")
+                logging.error(f"fetching {url}: {e}")
                 continue
             
             soup = BeautifulSoup(html, "html.parser")
@@ -172,7 +182,7 @@ class OfflineCrawler:
             is_content_duplicate = False
             for existing_simhash in self.seen_simhashes:
                 if self._hamming_distance(current_page_simhash, existing_simhash) <= self.simhash_threshold:
-                    print(f"[SIMHASH] Skipping {url} (content duplicate with existing hash).")
+                    logging.info(f"[SIMHASH] Skipping {url} (content duplicate with existing hash).")
                     is_content_duplicate = True
                     skipped_duplicate_content += 1
                     break
@@ -185,7 +195,7 @@ class OfflineCrawler:
             
             tokens_for_indexing = self._preprocess_text(soup)
             if not tokens_for_indexing:
-                print(f"[LANG] Skipping {url} (non-English or no extractable text).") # More specific
+                logging.info(f"[LANG] Skipping {url} (non-English or no extractable text).")
                 skipped_non_english += 1
                 continue
 
@@ -197,7 +207,7 @@ class OfflineCrawler:
             # NEW: End timer and print processing speed
             end_page_time = time.time()
             processing_time = end_page_time - start_page_time
-            print(f"[SUCCESS] Processed {url} (Doc ID: {doc_id}) in {processing_time:.2f} seconds.")
+            logging.info(f"[SUCCESS] Processed {url} (Doc ID: {doc_id}) in {processing_time:.2f} seconds.")
 
             if depth < self.max_depth:
                 current_page_text_for_scoring = self._get_cleaned_text_for_simhash(soup)
@@ -226,18 +236,17 @@ class OfflineCrawler:
                             links_added_from_page += 1
                         # else:
                             # print(f"  [LINK_SKIP] Extracted link {href} skipped by robots.txt.") # Too verbose, uncomment for deep debugging
-                print(f"  [LINKS] Added {links_added_from_page} new links to frontier. Frontier size: {len(self.frontier)}.")
+                logging.info(f"[LINKS] Added {links_added_from_page} new links to frontier. Frontier size: {len(self.frontier)}.")
             else:
-                print(f"  [LINKS] Max depth reached, no new links added from {url}.")
+                logging.info(f"[LINKS] Max depth reached, no new links added from {url}.")
 
-
-        print(f"\n[CRAWL COMPLETE] Finished crawling.")
-        print(f"Total pages crawled and indexed: {crawled_count}")
-        print(f"Skipped by robots.txt: {skipped_robots}")
-        print(f"Skipped as content duplicates (SimHash): {skipped_duplicate_content}")
-        print(f"Skipped as non-English or no text: {skipped_non_english}")
-        print(f"Skipped (already processed in previous run): {skipped_already_processed}")
-        print(f"Remaining URLs in frontier (not crawled): {len(self.frontier)}")
+        logging.info(f"\n[CRAWL COMPLETE] Finished crawling.")
+        logging.info(f"Total pages crawled and indexed: {crawled_count}")
+        logging.info(f"Skipped by robots.txt: {skipped_robots}")
+        logging.info(f"Skipped as content duplicates (SimHash): {skipped_duplicate_content}")
+        logging.info(f"Skipped as non-English or no text: {skipped_non_english}")
+        logging.info(f"Skipped (already processed in previous run): {skipped_already_processed}")
+        logging.info(f"Remaining URLs in frontier (not crawled): {len(self.frontier)}")
 
 
     # NEW METHOD: _get_robot_parser
@@ -263,31 +272,31 @@ class OfflineCrawler:
                 
                 if response.status_code == 200:
                     rp.parse(response.text.splitlines())
-                    print(f"Successfully fetched and parsed robots.txt for {domain}")
+                    logging.info(f"Successfully fetched and parsed robots.txt for {domain}")
                     
                     # Get crawl delay from robots.txt
                     c_delay = rp.crawl_delay(self.user_agent) 
                     if c_delay is not None:
                         # Use the robots.txt delay directly if specified, to speed up if allowed.
                         current_domain_delay = c_delay 
-                        print(f"Applying robots.txt crawl-delay of {c_delay}s for {domain}. Effective delay: {current_domain_delay}s")
+                        logging.info(f"Applying robots.txt crawl-delay of {c_delay}s for {domain}. Effective delay: {current_domain_delay}s")
                     else:
                         # If no specific crawl-delay from robots.txt, use our default
-                        print(f"No specific crawl-delay in robots.txt for {domain}. Using default delay: {self.default_delay}s")
+                        logging.info(f"No specific crawl-delay in robots.txt for {domain}. Using default delay: {self.default_delay}s")
                         current_domain_delay = self.default_delay 
                     
                 elif response.status_code in (401, 403):
                     rp.disallow_all = True
-                    print(f"Access denied to robots.txt for {domain}. Disallowing all.")
+                    logging.info(f"Access denied to robots.txt for {domain}. Disallowing all.")
                 elif response.status_code >= 400 and response.status_code < 500:
                     rp.allow_all = True
-                    print(f"robots.txt not found for {domain} (Status: {response.status_code}). Allowing all.")
+                    logging.info(f"robots.txt not found for {domain} (Status: {response.status_code}). Allowing all.")
                 else:
                     rp.allow_all = True
-                    print(f"Error fetching robots.txt for {domain} (Status: {response.status_code}). Allowing all.")
+                    logging.info(f"Error fetching robots.txt for {domain} (Status: {response.status_code}). Allowing all.")
 
             except requests.exceptions.RequestException as e:
-                print(f"Failed to fetch robots.txt for {domain}: {e}. Allowing all.")
+                logging.warning(f"Failed to fetch robots.txt for {domain}: {e}. Allowing all.")
                 rp.allow_all = True
 
             self.robot_parsers[domain] = rp
@@ -301,7 +310,6 @@ class OfflineCrawler:
     # NEW/MODIFIED METHOD: _calculate_priority
     def _calculate_priority(self, url, anchor_text, source_page_tokens, current_depth):
         score = 0
-        print("using new priority queuing method")
         # Define weights for each relevance tier
         VERY_RELEVANT_WEIGHT = 20
         RELEVANT_WEIGHT = 10
@@ -430,7 +438,7 @@ class OfflineCrawler:
         except:
             pass
         if not any(l.lang == "en" and l.prob >= 0.9 for l in langs):
-            print(f"[SKIP] non-English content detected.")
+            logging.warning("non-English page, skipping.")
             return None # Return None to indicate this page should be skipped for indexing
         
         text = text.lower()
@@ -467,6 +475,11 @@ class OfflineCrawler:
         with open(path, "wb") as f:
             pickle.dump(data, f)
 
+    # TODO these three methods should be unified
+    def _save_all(self):
+        with open(self.path_to_crawled_data, "wb") as f:
+            pickle.dump(self.crawled_data, f)
+
     # MODIFIED METHOD: _load
     def _load(self, path):
         try:
@@ -475,18 +488,65 @@ class OfflineCrawler:
             return data
         except FileNotFoundError:
             if path == self.path_to_crawled_data:
-                print("[INFO] No previous crawl data found, starting fresh for crawled_data.")
+                logging.warning(f"No previous crawl data found, starting fresh for crawled_data.")
                 return {}
             elif path == self.path_to_simhashes:
-                print("[INFO] No previous SimHashes found, starting fresh for SimHash store.")
+                logging.warning(f"No previous SimHashes found, starting fresh for SimHash store.")
                 return set()
             else:
                 raise
 
+    def _handle_interrupt(self, signum, frame):
+        logging.info("Interrupted! Saving current progress...")
+        self._save_all()
+        sys.exit(0)
+
+
+# TODO this function is taken mostly from crawling preprocessing function.
+# i dont know if we should keep stopwords (think about negations in a query)
+# or keep other information
+def preprocess_query(text):
+    # Lowercase
+    text = text.lower()
+
+    # Remove non-alphabetic characters and normalize whitespace
+    text = re.sub(r"[^a-z\s]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+
+    # Tokenize
+    tokens = word_tokenize(text)
+
+    # Filter stopwords and lemmatize words
+    filtered_tokens = [
+        lemmatizer.lemmatize(token) for token in tokens
+        if token not in stop_words and len(token) > 2
+    ]
+
+    return filtered_tokens
 
 # Example Usage (replace your existing example usage):
 if __name__ == "__main__":
+    
     initial_seeds = ["https://en.wikipedia.org/wiki/T%C3%BCbingen"]
     seeds = ["https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html"] # Replace with actual seeds
-    crawler = OfflineCrawler(seeds, max_depth=2)
-    crawler.run()
+
+    #crawler = OfflineCrawler(initial_seeds, max_depth=2)
+    #crawler.run()
+
+    ind = Indexer()
+    ind.run()
+
+    query = 'traffic'
+    query = preprocess_query(query)
+
+    model = BM25()
+    ranking = model.bm25_ranking(query)
+
+    for doc_idx, score in ranking:
+        print(f"Document {doc_idx}: BM25 score = {score:.4f}")
+
+
+# TODO whats inside the pkl docs if i re run the crawler and indexer?
+# TODO sembra che bm25 non funzioni: alla query Traffic il primo risultato manco contiene il termine
+# TODO stampare solo le prime 10 results del ranking
+# TODO controllare che non sparisca il log file: ora scompare se runno crawl, interrupt, run indexer
