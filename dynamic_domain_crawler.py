@@ -121,12 +121,13 @@ class DynamicDomainCrawler:
         return s
 
     def _load(self, path, default):
-        if default is None and not os.path.exists(path):
-            return None
+        if not os.path.exists(path):
+            return default
         try:
             with open(path, 'rb') as f:
                 return pickle.load(f)
-        except FileNotFoundError:
+        except (FileNotFoundError, EOFError, pickle.UnpicklingError):
+            # Datei leer oder korrupt => verwerfe Inhalt und starte mit default
             return default
 
     def _save(self, path, obj):
@@ -303,9 +304,9 @@ class DynamicDomainCrawler:
             active      = len(self.active_threads)
             visited_all = self.urls_visited_count
             new_pages   = self.new_pages_count
-            total_uni   = len(self.visited_urls)
-            print(f"[STATS] ActiveThreads={active}/{self.max_threads} | "
-                  f"VisitedURLs={visited_all} | NewPages={new_pages} | TotalUniqueURLs={total_uni}")
+            total_processed = len(self.crawled_data)
+            print(f"[STATS] ActiveThreads:{active}/{self.max_threads} | "
+                  f"VisitedURLs:{visited_all} | NewPages:{new_pages} | TotalProcessedDocs:{total_processed}")
 
             # check limits
             elapsed = (time.time() - self.start_time) / 60
@@ -374,14 +375,14 @@ class DynamicDomainCrawler:
         active      = len(self.active_threads)
         visited_all = self.urls_visited_count
         new_pages   = self.new_pages_count
-        total_uni   = len(self.visited_urls)
+        total_processed = len(self.crawled_data)
         left        = sum(q.qsize() for q in self.domain_queues.values())
 
         print("\n[Crawl Complete]")
         print(f"  ActiveThreads     {active}/{self.max_threads}")
         print(f"  VisitedURLs       {visited_all}")
         print(f"  NewPagesAdded     {new_pages}")
-        print(f"  TotalUniqueURLs   {total_uni}")
+        print(f"  TotalProcessedDocs   {total_processed}")
         print(f"  FrontierRemaining {left}")
 
 if __name__ == '__main__':
