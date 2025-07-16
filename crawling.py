@@ -8,9 +8,11 @@ from bs4 import BeautifulSoup
 import re
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-import math
-from collections import defaultdict
 from langdetect import detect_langs
+import logging
+import sys
+import signal
+import os
 
 
 # Ensure stopwords are available
@@ -20,10 +22,26 @@ try:
 except LookupError:
     nltk.download("stopwords")
 
+try:
+    nltk.data.find("tokenizers/punkt")
+except LookupError:
+    nltk.download("punkt")
+
 
 
 stop_words = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler("log/crawler.log", mode='w', encoding='utf-8'),  # Save logs to file (overwrite)
+        logging.StreamHandler()  # Print logs to console
+    ]
+)
 
 
 class OfflineCrawler:
@@ -33,15 +51,17 @@ class OfflineCrawler:
         self.max_depth = max_depth
         self.delay = delay
 
-        self.path_to_crawled_data = 'crawled_data.pkl'
+        self.path_to_crawled_data = 'data/crawled_data.pkl'
         self.crawled_data = self._load(self.path_to_crawled_data)
+        signal.signal(signal.SIGINT, self._handle_interrupt)        # USE CTR+C TO INTERRUPT THE CRAWLING, NOT CTR+Z THAT MIGHT CORRUPT THE FILE
+
         
-        self.path_to_posting_lists = 'posting_list.pkl'
-        self.skip_dict, self.pos_index_dict = self._load(self.path_to_posting_lists)
-        
+
     def run(self):
         frontier = deque([(url, 0) for url in self.seeds])
         visited = set()
+        non_english_domains = (".de", ".fr", ".es", ".ru", ".cn", ".it", ".pl", ".jp", ".br")
+
 
         while frontier:
             url, depth = frontier.popleft()
@@ -50,41 +70,53 @@ class OfflineCrawler:
             visited.add(url)
 
             try:
-                resp = requests.get(url, timeout=5)
+                #resp = requests.get(url, timeout=5)
+                resp = requests.get(url, headers={"Accept-Language": "en-US,en;q=0.9"}, timeout=5)
                 resp.raise_for_status()
                 html = resp.text
             except Exception as e:
-                print(f"[ERROR] fetching {url}: {e}")
+                logging.error(f"fetching {url}: {e}")
                 continue
             
             soup = BeautifulSoup(html, "html.parser")
+            
             tokens = self._preprocess_text(soup)
+            if tokens is None:
+                continue  # Skip saving and linking for non-English pages
+            
             doc_id = self._get_id(url)
+            logging.info(f"depth: {depth} fetching id: {doc_id}, {url}")
             # Just save the data and not compute the posting list, so it can be done at the end of the crawling
             # process only one time (useful for skip pointers). Also, disconnection resistant
             self._save_crawled(doc_id, tokens)
 
+
             # enqueue links if depth allows
             if depth < self.max_depth:
+                
                 for a in soup.find_all("a", href=True):
                     href = urljoin(url, a["href"])
                     href, _ = urldefrag(href)
                     p = urlparse(href)
-                    if p.scheme in ("http", "https"):
-                        frontier.append((href, depth + 1))
+
+                    # Skip non-HTTP links
+                    if p.scheme not in ("http", "https"):
+                        continue
+
+                    # Heuristic 1: Skip known non-English domains
+                    if any(href.endswith(domain) for domain in non_english_domains):
+                        continue
+
+                    # Heuristic 2: Skip URLs with language codes in the path
+                    if re.search(r"/(de|fr|es|ru|cn|it|pl|jp|br)(/|$)", href):
+                        continue
+
+                    frontier.append((href, depth + 1))
 
             time.sleep(self.delay)
-        
-        print('Indexing...')
-        self.crawled_data = self._load(self.path_to_crawled_data)
-        self._build_skip_pointers(self.crawled_data)
-        self._build_positional_index(self.crawled_data)
-        
-        print("Saving posting lists...")
-        self._save_posting_lists()
-        print("Done.")
 
 
+    # TODO this is randomly done, make something useful
     def _get_id(self, url):
         if self.crawled_data:
             return max(self.crawled_data.keys()) + 1
@@ -104,9 +136,9 @@ class OfflineCrawler:
         except:
             pass
         if not any(l.lang == "en" and l.prob >= 0.9 for l in langs):
-            print(f"[SKIP] non-English")
-            # TODO returnare qualcosa
-            return
+            logging.warning("non-English page, skipping.")
+            # TODO return something
+            return None
         
         # Lowercase
         text = text.lower()
@@ -118,7 +150,7 @@ class OfflineCrawler:
         # Tokenize
         tokens = word_tokenize(text)
 
-        # Filter stopwords and stem words
+        # Filter stopwords and lemmatize words
         filtered_tokens = [
             lemmatizer.lemmatize(token) for token in tokens
             if token not in stop_words and len(token) > 2
@@ -127,69 +159,15 @@ class OfflineCrawler:
         return filtered_tokens
 
 
-    def _build_skip_pointers(self, crawled_data):
-        token_to_ids = {}
-        skip_dict = {}
-
-        # Process every document
-        for doc_id, tokens in crawled_data.items():
-
-            # For every token, create a list containing the IDs of the documents in which the token is present
-            for token in tokens:
-                if token_to_ids.get(token) is None:    # First time we see this term -> initialize it
-                    token_to_ids[token] = [doc_id]
-                elif doc_id in token_to_ids[token]:
-                    continue
-                else:
-                    token_to_ids[token].append(doc_id)
-        
-        # Add skip pointers
-        for token in token_to_ids:
-            current_ids = token_to_ids[token]
-            
-            # Insert a pointer every pointer_freq entry
-            pointer_freq = math.ceil(math.sqrt(len(token_to_ids[token])))
-
-            skip_pointers = []
-            for i, id in enumerate(current_ids):
-                index_to_skip = None
-                doc_at_that_index = None
-                if i % pointer_freq == 0:
-                    index_to_skip = i + pointer_freq
-                    if index_to_skip >= len(current_ids):
-                        index_to_skip = len(current_ids) - 1
-                    doc_at_that_index = current_ids[index_to_skip]
-                skip_pointers.append([id, index_to_skip, doc_at_that_index])
-            
-            skip_dict[token] = skip_pointers
-        
-        self.skip_dict = skip_dict
-
-    
-    def _build_positional_index(self, crawled_data):
-
-        index = defaultdict(lambda: defaultdict(list))  # token -> {doc_id: [positions]}
-
-        for doc_id, tokens in crawled_data.items():
-            for position, token in enumerate(tokens):
-                index[token][doc_id].append(position)
-
-        # Convert inner dicts to lists for final output format
-        final_index = {}
-        for token, doc_dict in index.items():
-            final_index[token] = [[doc_id, positions] for doc_id, positions in doc_dict.items()]
-
-        self.pos_index_dict = final_index
-
     def _save_crawled(self, doc_id, tokens):
-        self.crawled_data.update({doc_id : tokens})
+        self.crawled_data[doc_id] = tokens
 
-        with open(self.path_to_crawled_data, "wb") as f:
+        tmp_path = self.path_to_crawled_data + ".tmp"
+        with open(tmp_path, "wb") as f:
             pickle.dump(self.crawled_data, f)
 
-    def _save_posting_lists(self):
-        with open(self.path_to_posting_lists, "wb") as f:
-            pickle.dump((self.skip_dict, self.pos_index_dict), f)
+        os.replace(tmp_path, self.path_to_crawled_data)  # atomic rename
+
 
     def _load(self, path):
         try:
@@ -197,20 +175,16 @@ class OfflineCrawler:
                 data = pickle.load(f)
             return data
         except FileNotFoundError:
-            if path == self.path_to_crawled_data:
-                print("[INFO] No previous crawl data found, starting fresh.")
-                return {}
-            elif path == self.path_to_posting_lists:
-                print("[INFO] No existing posting lists found, will build from scratch.")
-                return {}, {}
-            else:
-                raise  # re-raise for unknown files
+            logging.info("No previous crawl data found, starting fresh.")
+            return {}
 
-    
 
-seeds = ["https://example.com"]
-crawler = OfflineCrawler(seeds, max_depth=1)
-pages = crawler.run()
+    def _handle_interrupt(self, signum, frame):
+        logging.info("Interrupted! Saving current progress...")
+        self._save_all()
+        sys.exit(0)
 
-post = crawler._load('posting_list.pkl')
-a = 0
+
+    def _save_all(self):
+        with open(self.path_to_crawled_data, "wb") as f:
+            pickle.dump(self.crawled_data, f)
