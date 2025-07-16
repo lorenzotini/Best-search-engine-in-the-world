@@ -21,6 +21,67 @@ class Indexer:
         self._build_IDF()
 
 
+    def get_candidates(self, query, use_proximity=False, proximity_range=3):
+        """
+        Get candidate document IDs for the given query.
+
+        Args:
+            query (list of str): List of query terms (already preprocessed)
+            use_proximity (bool): If True, use _intersect_range for positional constraints.
+            proximity_range (int): Max distance between terms if use_proximity is True.
+
+        Returns:
+            list of int: Candidate document IDs.
+        """
+        if not query:
+            return []
+
+        query = [term.lower() for term in query]  # Normalize
+
+        if use_proximity:
+            # Positional intersection (for phrase search / proximity search)
+            if query[0] not in self.pos_index_dict:
+                return []
+
+            candidates = self.pos_index_dict[query[0]]
+            
+            for term in query[1:]:
+                if term not in self.pos_index_dict:
+                    return []
+                candidates = self._intersect_range(candidates, self.pos_index_dict[term], proximity_range)
+                # After first iteration, candidates becomes a list of docIDs only
+                # For further _intersect_range calls, we need to reconstruct position lists
+                if not candidates:
+                    return []
+                candidates = [
+                    [doc_id, [pos for pos in self.pos_index_dict[term] if pos[0] == doc_id][0][1]]
+                    for doc_id in candidates
+                ]
+            
+            return [doc_id for doc_id, _ in candidates]
+
+        else:
+            # Standard AND search using skip pointers
+            if query[0] not in self.skip_dict:
+                return []
+
+            candidates = self.skip_dict[query[0]]
+
+            for term in query[1:]:
+                if term not in self.skip_dict:
+                    return []
+                candidates = self._intersect_skip(candidates, self.skip_dict[term])
+                if not candidates:
+                    return []
+
+                # After _intersect_skip, candidates is a list of docIDs
+                # For the next iteration, convert back to [docID, skip_index, docID_at_skip]
+                # But since we don't have skip pointers anymore, wrap it without skips
+                candidates = [[doc_id, None, None] for doc_id in candidates]
+
+            return [entry[0] for entry in candidates]
+
+
     def _index_documents(self):
         print('Indexing...')
         self._build_skip_pointers(self.crawled_data)
@@ -165,16 +226,124 @@ class Indexer:
             else:
                 raise  # re-raise for unknown files
 
-"""     def _load(self, path):
-        if not os.path.exists(path):
-            print("[INFO] No previous crawl data found, starting fresh.")
-            return {}
-        if os.path.getsize(path) == 0:
-            print("[INFO] Found empty crawl data file, starting fresh.")
-            return {}
-        with open(path, 'rb') as f:
-            data = pickle.load(f)
-        return data """
-    
 
-        
+    def _can_skip(self, entry: list, other_doc: int) -> bool:
+        """
+        Check if a skip is possible in a posting list entry.
+
+        A skip is possible if the entry has valid skip pointer information
+        and the docID at the skip position is less than or equal to the
+        other document's ID.
+
+        Args:
+            entry (list): A list in the form [docID, skip_index, docID_at_skip].
+            other_doc (int): The target document ID to compare against.
+
+        Returns:
+            bool: True if skipping is possible, False otherwise.
+        """
+        return entry[1] is not None and entry[2] is not None and entry[2] <= other_doc
+
+
+    def _intersect_skip(self, A: list, B: list) -> list:
+        """
+        Intersect two sorted posting lists that contain skip pointers.
+
+        Each list must consist of entries that are lists of exactly three elements:
+        [docID (int), skip_index (int), docID_at_skip (int)].
+
+        Args:
+            A (list): First posting list. Must be a list of [int, int, int] entries.
+            B (list): Second posting list. Must be a list of [int, int, int] entries.
+
+        Returns:
+            list: A list of document IDs (int) present in both A and B.
+
+        Raises:
+            ValueError: If an entry in A or B is not a list of three integers.
+        """
+        i = 0
+        j = 0
+        matches = []
+        while i < len(A) and j < len(B):
+            if A[i][0] == B[j][0]:
+                matches.append(A[i][0])
+                i += 1
+                j += 1
+            elif A[i][0] < B[j][0]:
+                if _can_skip(A[i], B[j][0]):
+                    i = A[i][1]
+                    continue
+                i += 1
+            elif A[i][0] > B[j][0]:
+                if _can_skip(B[j], A[i][0]):
+                    j = B[j][1]
+                    continue
+                j += 1
+            else:
+                raise Exception("Something went wrong...")
+        return matches
+
+
+    def _in_range(self, A: list[int], B: list[int], rng: int) -> bool:
+        """
+        Check if any positions in two sorted lists fall within a given range.
+
+        Compares values from two lists and returns True if at least one
+        pair of elements (one from each list) differs by at most `rng`.
+
+        Args:
+            A (list[int]): First list of positions.
+            B (list[int]): Second list of positions.
+            rng (int): Maximum allowed difference between position values.
+
+        Returns:
+            bool: True if any positions are within `rng`, False otherwise.
+        """
+        i = 0
+        j = 0
+        while i < len(A) and j < len(B):
+            if abs(A[i] - B[j]) <= rng:
+                return True
+            elif A[i] < B[j]:
+                i += 1
+            elif A[i] > B[j]:
+                j += 1
+            else:
+                raise Exception("Something went wrong...")
+        return False
+
+
+    def _intersect_range(self, A: list, B: list, rng: int) -> list:
+        """
+        Intersect two posting lists with document-internal positional constraints.
+
+        Each posting list entry must be of the form [docID, positions],
+        where positions is a sorted list of integers. A match occurs if
+        both lists have the same docID and there is at least one pair
+        of positions (one from each list) within the given `rng`.
+
+        Args:
+            A (list): First posting list as [docID, positions].
+            B (list): Second posting list as [docID, positions].
+            rng (int): Maximum allowed position difference for a match.
+
+        Returns:
+            list: List of document IDs that match within the specified range.
+        """
+        i = 0
+        j = 0
+        matches = []
+        while i < len(A) and j < len(B):
+            docA, posA = A[i]
+            docB, posB = B[j]
+            if docA == docB:
+                if _in_range(posA, posB, rng):
+                    matches.append(docA)
+                i += 1
+                j += 1
+            elif docA < docB:
+                i += 1
+            else:
+                j += 1
+        return matches
