@@ -55,9 +55,9 @@ def main():
         seeds,
         max_depth=3,
         simhash_threshold=3,
-        max_threads=10,
-        time_limit=2,
-        max_new_pages=5
+        max_threads=100,
+        time_limit=5,
+        max_new_pages=100
     )
     crawler.run()
 
