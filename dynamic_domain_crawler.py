@@ -278,6 +278,7 @@ class DynamicDomainCrawler:
                         self.url_to_doc_id[url] = did
                         self.seen_simhashes.add(new_sim)
                         self.new_pages_count += 1
+                        updated = True
                         print(f"[NEW] {url} -> doc{did}")
 
             # batch save

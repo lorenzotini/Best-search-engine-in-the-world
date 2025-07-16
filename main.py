@@ -53,7 +53,7 @@ def main():
     ]
     crawler = DynamicDomainCrawler(
         seeds,
-        max_depth=5,
+        max_depth=3,
         simhash_threshold=3,
         max_threads=100,
         time_limit=5,
