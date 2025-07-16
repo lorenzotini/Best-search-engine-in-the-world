@@ -17,6 +17,7 @@ from collections import defaultdict
 from langdetect import detect_langs
 import heapq 
 import urllib.robotparser 
+import hashlib
 
 
 # Ensure stopwords are available
@@ -42,11 +43,9 @@ class OfflineCrawler:
 
         self.path_to_crawled_data = 'crawled_data.pkl'
         self.path_to_simhashes = 'simhashes.pkl'
-        self.path_to_posting_lists = 'posting_list.pkl'
         
         self.crawled_data = self._load(self.path_to_crawled_data)
         self.seen_simhashes = self._load(self.path_to_simhashes)
-        self.skip_dict, self.pos_index_dict = self._load(self.path_to_posting_lists)
         
         # Priority queue for frontier: (priority, url, depth)
         self.frontier = []
@@ -66,7 +65,7 @@ class OfflineCrawler:
         # IMPORTANT: REPLACE with your actual contact URL!
         self.user_agent = "TübingenSearchBot_UniProject/4.20 (https://alma.uni-tuebingen.de/alma/pages/startFlow.xhtml?_flowId=detailView-flow&unitId=78284&periodId=228&navigationPosition=studiesOffered,searchCourses)" 
             
-         # NEW: Tiered keywords for weighted priority
+            # NEW: Tiered keywords for weighted priority
         self.very_relevant_keywords = {
             "tuebingen", "tubingen", "eberhard karls universität", "hohentuebingen", "hohentübingen",
             "stocherkahnrennen", "chocolart", "university", "universität", "neckar", "altstadt", "baden-wuerttemberg", "baden-württemberg"
@@ -240,7 +239,6 @@ class OfflineCrawler:
         print(f"Skipped (already processed in previous run): {skipped_already_processed}")
         print(f"Remaining URLs in frontier (not crawled): {len(self.frontier)}")
 
-        print('Starting indexing...')
 
     # NEW METHOD: _get_robot_parser
     def _get_robot_parser(self, url):
@@ -386,7 +384,6 @@ class OfflineCrawler:
         Computes the SimHash of the given text.
         Uses a simple bag-of-words approach with MD5 hashing for features.
         """
-        import hashlib # Ensure hashlib is imported if not already globally
         if not text:
             return 0
 
@@ -423,7 +420,7 @@ class OfflineCrawler:
     def _preprocess_text(self, soup):
         # Extract visible text (from the original soup, not the one modified for SimHash)
         for tag in soup(["script", "style"]):
-             tag.decompose()
+            tag.decompose()
         text = soup.get_text(separator=" ")
 
         # Language filter
@@ -457,58 +454,6 @@ class OfflineCrawler:
             return max(self.crawled_data.keys()) + 1
         return 0 # First document will be ID 0
 
-    # MODIFIED METHOD: _build_skip_pointers
-    def _build_skip_pointers(self, crawled_data):
-        token_to_ids = {}
-        skip_dict = {}
-
-        for doc_id, doc_info in crawled_data.items():
-            tokens = doc_info['tokens'] # Get tokens from the stored dict
-
-            for token in tokens:
-                if token_to_ids.get(token) is None:
-                    token_to_ids[token] = [doc_id]
-                elif doc_id in token_to_ids[token]:
-                    continue
-                else:
-                    token_to_ids[token].append(doc_id)
-        
-        for token in token_to_ids:
-            current_ids = token_to_ids[token]
-            pointer_freq = math.ceil(math.sqrt(len(token_to_ids[token])))
-            if pointer_freq == 0:
-                pointer_freq = 1
-
-            skip_pointers = []
-            for i, id in enumerate(current_ids):
-                index_to_skip = None
-                doc_at_that_index = None
-                if i % pointer_freq == 0:
-                    index_to_skip = i + pointer_freq
-                    if index_to_skip >= len(current_ids):
-                        index_to_skip = len(current_ids) - 1
-                    doc_at_that_index = current_ids[index_to_skip]
-                skip_pointers.append([id, index_to_skip, doc_at_that_index])
-            
-            skip_dict[token] = skip_pointers
-        
-        self.skip_dict = skip_dict
-
-    # MODIFIED METHOD: _build_positional_index
-    def _build_positional_index(self, crawled_data):
-        index = defaultdict(lambda: defaultdict(list))
-
-        for doc_id, doc_info in crawled_data.items():
-            tokens = doc_info['tokens'] # Get tokens from the stored dict
-            for position, token in enumerate(tokens):
-                index[token][doc_id].append(position)
-
-        final_index = {}
-        for token, doc_dict in index.items():
-            final_index[token] = [[doc_id, positions] for doc_id, positions in doc_dict.items()]
-
-        self.pos_index_dict = final_index
-
     # MODIFIED METHOD: _save_crawled
     def _save_crawled(self, doc_id, doc_info):
         self.crawled_data[doc_id] = doc_info
@@ -532,9 +477,6 @@ class OfflineCrawler:
             if path == self.path_to_crawled_data:
                 print("[INFO] No previous crawl data found, starting fresh for crawled_data.")
                 return {}
-            elif path == self.path_to_posting_lists:
-                print("[INFO] No existing posting lists found, will build from scratch.")
-                return {}, {}
             elif path == self.path_to_simhashes:
                 print("[INFO] No previous SimHashes found, starting fresh for SimHash store.")
                 return set()
@@ -548,12 +490,3 @@ if __name__ == "__main__":
     seeds = ["https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html"] # Replace with actual seeds
     crawler = OfflineCrawler(seeds, max_depth=2)
     crawler.run()
-
-
-
-# seeds = ["https://www.germany.travel/en/cities-culture/tuebingen.html"]
-# crawler = OfflineCrawler(seeds, max_depth=1)
-# pages = crawler.run()
-
-# post = crawler._load('posting_list.pkl')
-# id = crawler._get_id("https://example.com")
