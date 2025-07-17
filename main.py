@@ -51,12 +51,17 @@ crawler.run()  """
 ind = Indexer()
 #ind.run()
 
-
 def search(query_text: str):
     query = preprocess_query(query_text)
-    candidates_ids = ind.get_candidates(query, use_proximity=False)
+
+    candidates_ids = ind.get_union_candidates(query)
+
+    if not candidates_ids:
+        return []
+
     model = BM25()
     return model.bm25_ranking(query, candidates_ids)
+
 
 
 for r in search('germany'):

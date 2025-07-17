@@ -1,5 +1,7 @@
 import pickle
 
+from Utils.indexer import Indexer
+
 
 class BM25:
 
@@ -40,20 +42,19 @@ class BM25:
 
 
     def bm25_ranking(self, query, candidate_doc_ids):
-        """
-        Args:
-            query: list of str -> the query tokens
-            candidate_doc_ids: list of int -> document IDs from posting list intersection
-
-        Returns:
-            list of str: URLs of the top ranked documents
-        """
         doc_lengths = self._compute_doc_lengths()
         avgdl = sum(doc_lengths) / len(doc_lengths)
 
         scores = []
+        ind = Indexer()  # Use the indexer to access positional info
+
         for doc_id in candidate_doc_ids:
             score = self._bm25_score(query, doc_id, doc_lengths, avgdl)
+
+            # Proximity bonus
+            bonus = ind.proximity_bonus(query, doc_id, window=3)
+            score += bonus  # Add the bonus to the BM25 score
+
             scores.append((doc_id, score))
         
         # Sort by score descending
