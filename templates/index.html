@@ -34,14 +34,13 @@
     {% for result in results %}
     <div class="result">
         
-        <h2>{{ result.title }}</h2>
-        <div class="meta">
-            <div class="meta-date"><span class="material-icons">calendar_today</span>12. Juli 2025</div>
-            <div class="meta-origin"><span class="material-symbols-outlined">frame_source</span>Wikipedia.de</div>
-        </div>
-        <p class="summary">{{ result.description }}<br>
-        <a href="{{ result.url }}" target="_blank"></a></p>
-
+            <h2>{{ result.title }}</h2>
+            <div class="meta">
+                <div class="meta-date"><span class="material-icons">calendar_today</span>{{result.published_date}}</div>
+                <div class="meta-origin"><span class="material-symbols-outlined">frame_source</span>{{result.origin}}</div>
+            </div>
+            <p class="summary">{{ result.description }}<br>
+            <a href="{{ result.url }}" target="_blank"></a></p>
         <div class="flex items-center space-x-4">
         <!-- Percentage text -->
     
