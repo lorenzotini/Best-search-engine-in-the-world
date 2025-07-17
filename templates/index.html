@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tübingen Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=frame_source" />
+
+</head>
+<body>
+    <h1>Tübingen Search</h1>
+    <!-- Search Form -->
+    <form method="post" class="search-form">
+        <input type="text" id="query-input" name="query" value="{{ query }}" placeholder="Search the world ..."
+               class="search-input">
+
+        <div class="sentiment-filter-wrapper">
+            <select id="sentiment-filter" name="sentiment_filter" class="sentiment-filter">
+                <option value="">Sentiment labels</option>
+                <option value="positive" {% if sentiment_filter == 'positive' %}selected{% endif %}>Positive</option>
+                <option value="neutral" {% if sentiment_filter == 'neutral' %}selected{% endif %}>Neutral</option>
+                <option value="negative" {% if sentiment_filter == 'negative' %}selected{% endif %}>Negative</option>
+            </select>
+            <span class="material-icons">arrow_drop_down</span>
+        </div>
+
+        <button type="submit" class="search-button">
+            <span class="material-icons">search</span>
+        </button>
+    </form>
+
+    {% for result in results %}
+    <div class="result">
+        
+        <h2>{{ result.title }}</h2>
+        <div class="meta">
+            <div class="meta-date"><span class="material-icons">calendar_today</span>12. Juli 2025</div>
+            <div class="meta-origin"><span class="material-symbols-outlined">frame_source</span>Wikipedia.de</div>
+        </div>
+        <p class="summary">{{ result.description }}<br>
+        <a href="{{ result.url }}" target="_blank"></a></p>
+
+        <div class="flex items-center space-x-4">
+        <!-- Percentage text -->
+    
+        <!-- Progress Bar (now using standard CSS classes) -->
+            <div class="progress-wrapper">
+                <!-- Percentage text -->
+                <div class="progress-percentage-text">
+                    {{ result.sentiment_score}}%
+                </div>
+
+                <!-- Progress bar container -->
+                <div class="progress-container">
+                    <!-- Filled portion of the progress bar -->
+                     <div class="progress-fill" style="width: {{ result.sentiment_score }}%; background-color:
+                        {% if result.sentiment == 'positive' %}
+                            #bbf7d0; /* light green */
+                        {% elif result.sentiment == 'negative' %}
+                            #fecaca; /* light red */
+                        {% else %}
+                            #bfdbfe; /* light blue for neutral or default */
+                        {% endif %}
+                    ;">
+                        <!-- Text inside the progress bar -->
+                        <span class="progress-text">{{result.sentiment}}</span>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    </div>
+    {% endfor %}
+</body>
+</html>
