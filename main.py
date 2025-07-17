@@ -3,9 +3,9 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
-from legal_crawling import OfflineCrawler
-from indexer import Indexer
-from bm25 import BM25
+from Utils.legal_crawling import OfflineCrawler
+from Utils.indexer import Indexer
+from Utils.bm25 import BM25
 
 # Ensure stopwords are available
 try:
@@ -20,7 +20,7 @@ lemmatizer = WordNetLemmatizer()
 # TODO this function is taken mostly from crawling preprocessing function.
 # i dont know if we should keep stopwords (think about negations in a query)
 # or keep other information
-def preprocess_query(text):
+def preprocess_query(text: str):
     # Lowercase
     text = text.lower()
 
@@ -51,19 +51,16 @@ crawler.run()  """
 ind = Indexer()
 #ind.run()
 
-query = 'germany'
-query = preprocess_query(query)
 
-candidates_ids = ind.get_candidates(query, use_proximity=False)
+def search(query_text: str):
+    query = preprocess_query(query_text)
+    candidates_ids = ind.get_candidates(query, use_proximity=False)
+    model = BM25()
+    return model.bm25_ranking(query, candidates_ids)
 
-model = BM25()
-ranking = model.bm25_ranking(query, candidates_ids)
 
-for url in ranking[:10]:
-    print(url)
-
-for data in ind.crawled_data:
-    print(data['url'])
+for r in search('germany'):
+    print(r)
 
 # TODO whats inside the pkl docs if i re run the crawler and indexer?
 # TODO sembra che bm25 non funzioni: alla query Traffic il primo risultato manco contiene il termine

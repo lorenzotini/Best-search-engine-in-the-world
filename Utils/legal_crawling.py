@@ -4,7 +4,7 @@ import requests
 from urllib.parse import urljoin, urldefrag, urlparse, urlunparse 
 import nltk
 
-from bm25 import BM25
+from Utils.bm25 import BM25
 nltk.download("stopwords", quiet=True)
 nltk.download("punkt_tab", quiet=True)
 nltk.download("wordnet", quiet=True)
@@ -20,7 +20,7 @@ import urllib.robotparser
 import hashlib
 import logging
 import signal
-from indexer import Indexer
+from Utils.indexer import Indexer
 
 stop_words = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
