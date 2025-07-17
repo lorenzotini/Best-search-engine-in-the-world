@@ -29,7 +29,6 @@ except LookupError:
 
 
 
-
 stop_words = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
 
@@ -117,6 +116,7 @@ class OfflineCrawler:
             time.sleep(self.delay)
 
 
+    # TODO this is randomly done, make something useful
     def _get_id(self, url):
         if self.crawled_data:
             return max(self.crawled_data.keys()) + 1
