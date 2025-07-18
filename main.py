@@ -41,15 +41,15 @@ def preprocess_query(text: str):
 
 
     
-initial_seeds = ["https://en.wikipedia.org/wiki/T%C3%BCbingen", 
-                 "https://uni-tuebingen.de/en/",
-                 "https://studieren.de/international-business-uni-tuebingen.studienprofil.t-0.a-68.c-110.html"]
+# initial_seeds = ["https://en.wikipedia.org/wiki/T%C3%BCbingen", 
+#                  "https://uni-tuebingen.de/en/",
+#                  "https://studieren.de/international-business-uni-tuebingen.studienprofil.t-0.a-68.c-110.html"]
 
-""" crawler = OfflineCrawler(initial_seeds, max_depth=2)
-crawler.run()  """
+# """ crawler = OfflineCrawler(initial_seeds, max_depth=2)
+# crawler.run()  """
 
 ind = Indexer()
-#ind.run()
+# ind.run()
 
 
 def search(query_text: str):
@@ -59,8 +59,8 @@ def search(query_text: str):
     return model.bm25_ranking(query, candidates_ids)
 
 
-for r in search('germany'):
-    print(r)
+# for r in search('germany'):
+#     print(r)
 
 # TODO whats inside the pkl docs if i re run the crawler and indexer?
 # TODO sembra che bm25 non funzioni: alla query Traffic il primo risultato manco contiene il termine

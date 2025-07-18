@@ -1,102 +1,162 @@
 # Flask version of your Streamlit app
 
 from flask import Flask, render_template, request, send_file
-import matplotlib.pyplot as plt
-import io
-import base64
 import requests
 from bs4 import BeautifulSoup
-from newspaper import Article
+from main import search
+import numpy as np
+from transformers import pipeline
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+import re
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 
 # ---------------- Helper Functions ----------------
 
+def document_sentiment_analysis_binary(data : list[str], pipeline, seed= 0, random_aprox=False):
+
+    doc_analysis = {}
+
+    if random_aprox:
+
+        np.random.seed(seed)
+        # natural random numbers for testing
+        random_scores = np.unique(np.random.randint(0, len(data), 10))
+        data = [data[i] for i in random_scores]
+
+    analysis = pipeline(data)
+
+    if analysis["label" == "NEGATIVE"] != None:
+        doc_analysis["negative"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "NEGATIVE" ]) / len(analysis)
+    else:
+        doc_analysis["negative"] = 0
+    if analysis["label" == "NEUTRAL"] != None:
+        doc_analysis["neutral"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "neutral" ]) / len(analysis)
+    else:
+        doc_analysis["negative"] = 0
+    if analysis["label" == "POSITIVE"] != None:
+        doc_analysis["positive"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "POSITIVE" ])  / len(analysis)
+    else:
+        doc_analysis["positive"] = 0
+
+    max_key = max(doc_analysis.items(), key=lambda item: item[1])[0]
+    max_value = doc_analysis[max_key]
+
+    return {"label": max_key, "score": max_value}
+
+def preprocess_text(text: str, chunk_size: int = 250):
+    # # Ensure stopwords are available
+    # stop_words = set(stopwords.words("english"))
+
+    # Lowercase and clean text
+    text = text.lower()
+    text = re.sub(r"[^a-z\s]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+
+    # Tokenize
+    tokens = word_tokenize(text)
+
+    document = [' '.join(tokens[i:i+chunk_size]) for i in range(0, len(tokens), chunk_size)]
 
 
-def extract_metadata(url):
+    if max([len(doc.split()) for doc in document]) > chunk_size:
+        ValueError("Document splitting failed, some chunks are larger than the specified chunk size.")
+
+    return document
+
+def extract_title_from_soup(soup):
+    """
+    Extracts a meaningful title from a BeautifulSoup object.
+    Tries multiple methods to find the best title.
+    """
+
+    # 1. <title> tag (basic HTML)
+    title = soup.title.string.strip() if soup.title and soup.title.string else ""
+
+    # 2. Open Graph metadata: <meta property="og:title" content="...">
+    og_title = soup.find("meta", property="og:title")
+    if og_title and og_title.get("content"):
+        title = og_title["content"].strip()
+
+    # 3. Twitter Cards metadata: <meta name="twitter:title" content="...">
+    twitter_title = soup.find("meta", attrs={"name": "twitter:title"})
+    if twitter_title and twitter_title.get("content"):
+        title = twitter_title["content"].strip()
+
+    return title
+
+def extract_description_from_soup(soup):
+    """
+    Extracts a meaningful description from a BeautifulSoup object.
+    Tries meta tags first, then finds the first non-empty <p> tag.
+    """
+
+    # Step 1: Try meta tags
+    meta_keys = [
+        {"name": "description"},
+        {"property": "og:description"},
+        {"name": "twitter:description"},
+    ]
+
+    for attrs in meta_keys:
+        tag = soup.find("meta", attrs=attrs)
+        if tag and tag.get("content"):
+            return tag["content"].strip()
+
+    # Step 2: Look in the main content area
+    content = soup.find("div", id="mw-content-text") or soup.body
+    if content:
+        for p in content.find_all("p"):
+            text = p.get_text(strip=True)
+            # Skip if paragraph is empty or just punctuation/refs
+            if text and len(text) > 40:  # Adjust length threshold as needed
+                return text
+
+    return "No description available."
+
+def get_document_data(url, pipeline):
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=0.2)
         response.raise_for_status()
-    except requests.RequestException as e:
-        print(f"Request failed: {e}")
+    except requests.RequestException:
         return None
 
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    data = {
+    title = extract_title_from_soup(soup)
+    description = extract_description_from_soup(soup)
+
+    text = preprocess_text(soup.get_text(separator=" ", strip=True))
+    sentiment_analy = document_sentiment_analysis_binary(text, pipeline, seed=0, random_aprox=True)
+
+    return {
+        "title": str(title),
         "url": url,
-        "title": None,
-        "summary": None,
-        "date": None
+        "description": str(description) if description else "",
+        "sentiment": sentiment_analy["label"],
+        "sentiment_score": int(sentiment_analy["score"] * 100),
     }
-
-    # Title from <title> or <meta property="og:title">
-    title = soup.title.string if soup.title else None
-    og_title = soup.find("meta", property="og:title")
-    if og_title and og_title.get("content"):
-        title = og_title["content"]
-    data["title"] = title
-
-    # Summary from <meta name="description"> or <meta property="og:description">
-    description = soup.find("meta", attrs={"name": "description"}) or \
-                  soup.find("meta", property="og:description")
-    if description and description.get("content"):
-        data["summary"] = description["content"]
-
-    # Date from common tags
-    date = (
-        soup.find("meta", {"name": "pubdate"}) or
-        soup.find("meta", {"name": "publish-date"}) or
-        soup.find("meta", {"property": "article:published_time"}) or
-        soup.find("time")
-    )
-    if date:
-        content = date.get("content") or date.get_text(strip=True)
-        data["date"] = content
-    else:
-        a = Article(url)
-        a.download()
-        a.parse()
-        data["date"] = a.publish_date
-
-    return data
 
 
 def get_results(query, sentiment_filter=None):
+    results_urls = search(query)
 
-    
+    # get sentiment analysis pipeline   
+    sentiment_pipeline = pipeline("sentiment-analysis")
 
-    # mock_data  = [
-    #     {
-    #         "title": "Tübingen - Eine Stadt voller Geschichte",
-    #         "description": "Tübingen ist eine malerische Stadt in Baden-Württemberg, bekannt für ihre historische Altstadt, die von engen Gassen und gut erhaltenen Fachwerkhäusern geprägt ist. Die Stadt liegt idyllisch am Neckar und bietet zahlreiche Möglichkeiten für Spaziergänge entlang des Flusses oder durch die grünen Parkanlagen. Besonders beliebt ist eine Stocherkahnfahrt auf dem Neckar, bei der man die Stadt aus einer ganz neuen Perspektive erleben kann. Neben der renommierten Universität, die das Stadtbild und das kulturelle Leben maßgeblich prägt, gibt es viele gemütliche Cafés, traditionelle Restaurants und kleine Boutiquen zu entdecken. Im Sommer finden regelmäßig Feste und Märkte statt, die Besucher aus der ganzen Region anziehen. Auch das Umland von Tübingen lädt mit seinen Weinbergen und Wanderwegen zu Ausflügen ein. Insgesamt verbindet Tübingen auf einzigartige Weise Geschichte, Natur und studentisches Leben.",
-    #         "url": "https://www.tuebingen.de",
-    #         "sentiment": "positive",
-    #         "sentiment_score": 95,
-    #         "published_date": "2025-07-12",
-    #         "origin": "Wikipedia.de"
-    #     },
-    #     {
-    #         "title": "Tübingen Tourismus",
-    #         "description": "Entdecken Sie die Sehenswürdigkeiten und Aktivitäten in Tübingen...",
-    #         "url": "https://www.tuebingen-tourismus.de",
-    #         "sentiment": "neutral",
-    #         "sentiment_score": 60
-    #     },
-    #     {
-    #         "title": "Besuch in Tübingen",
-    #         "description": "Historische Altstadt, moderne Forschungseinrichtungen und mehr...",
-    #         "url": "https://www.tuebingen.de/besuch",
-    #         "sentiment": "negative",
-    #         "sentiment_score": 40
-    #     }
-    ]
+    data = [get_document_data(url, sentiment_pipeline) for url in results_urls[:10]]  # Limit to first 2 URLs for demo
 
+    # Remove None results (failed requests)
+    data = [result for result in data if result is not None]
+
+    # sentiment filter
     if sentiment_filter:
-        mock_data = [result for result in mock_data if result['sentiment'] == sentiment_filter]
+        data = [result for result in data if result['sentiment'] == sentiment_filter]
 
-    return  mock_data
+    return data
 
 # ---------------- Routes ----------------
 
