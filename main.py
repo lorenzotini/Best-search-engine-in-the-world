@@ -6,6 +6,7 @@ from nltk.corpus import stopwords
 from Utils.legal_crawling import OfflineCrawler
 from Utils.indexer import Indexer
 from Utils.bm25 import BM25
+from Utils.hybrid_retrieval import HybridRetrieval
 
 # Ensure stopwords are available
 try:
@@ -44,34 +45,39 @@ def preprocess_query(text: str):
     return filtered_tokens
 
     
-initial_seeds = ["https://en.wikipedia.org/wiki/T%C3%BCbingen", 
+""" initial_seeds = ["https://en.wikipedia.org/wiki/T%C3%BCbingen", 
                  "https://uni-tuebingen.de/en/",
                  "https://uni-tuebingen.de/en/research.html",
                  "https://www.my-stuwe.de/en/",
                  "https://www.germany.travel/en/cities-culture/tuebingen.html",
                  "https://studieren.de/international-business-uni-tuebingen.studienprofil.t-0.a-68.c-110.html"]
 
-""" crawler = OfflineCrawler(initial_seeds, max_depth=2)
-crawler.run()  """
+crawler = OfflineCrawler(initial_seeds, max_depth=2)
+crawler.run()
 
 ind = Indexer()
 #ind.run()
 
-def search(query_text: str):
-    query = preprocess_query(query_text)
+def search(query_text: str, use_hybrid=False):
+    query_tokens = preprocess_query(query_text)
 
-    candidates_ids = ind.get_union_candidates(query)
+    candidates_ids = ind.get_union_candidates(query_tokens)
 
     if not candidates_ids:
-        return []
+            return []
+     
+    if use_hybrid:
+        print("\nUsing hybrid model...\n")
+        model = HybridRetrieval()
+        return model.retrieve(query_tokens)
+    else:
+        print("\nUsing BM25 model...\n")
+        model = BM25()
+        return model.bm25_ranking(query_tokens, candidates_ids)
 
-    model = BM25()
-    return model.bm25_ranking(query, candidates_ids)
 
-
-
-for r in search('food and drink')[:10]:
+for r in search('food', use_hybrid=False)[:10]:
     print(r)
-
+ """
 # TODO whats inside the pkl docs if i re run the crawler and indexer?
 # TODO controllare che non sparisca il log file: ora scompare se runno crawl, interrupt, run indexer
