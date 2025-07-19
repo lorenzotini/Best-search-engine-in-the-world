@@ -4,7 +4,6 @@ import requests
 from urllib.parse import urljoin, urldefrag, urlparse, urlunparse 
 import nltk
 
-from Utils.bm25 import BM25
 nltk.download("stopwords", quiet=True)
 nltk.download("punkt_tab", quiet=True)
 nltk.download("wordnet", quiet=True)
@@ -20,7 +19,6 @@ import urllib.robotparser
 import hashlib
 import logging
 import signal
-from Utils.indexer import Indexer
 
 stop_words = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
@@ -294,58 +292,59 @@ class OfflineCrawler:
 
             try:
                 headers = {'User-Agent': self.user_agent}
-                # The error occurs here or during subsequent redirect resolution
+                # The problematic line: requests.get can raise errors related to encoding in redirects
                 response = requests.get(robot_url, headers=headers, timeout=5)
+                response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
 
-                if response.status_code == 200:
-                    # Requests *should* have handled encoding for response.text by now,
-                    # but if there's still an issue with the _content_ (less likely
-                    # with your current traceback, but good practice):
-                    try:
-                        robot_content = response.text
-                    except UnicodeDecodeError:
-                        logging.warning(f"UTF-8 decode failed for robots.txt content from {domain}. Trying ISO-8859-1.")
-                        try:
-                            robot_content = response.content.decode('iso-8859-1')
-                        except UnicodeDecodeError:
-                            logging.error(f"Failed to decode robots.txt content for {domain} with ISO-8859-1. Allowing all.")
-                            rp.allow_all = True
-                            self.robot_parsers[domain] = rp
-                            self.domain_delays[domain] = current_domain_delay
-                            time.sleep(self.default_delay)
-                            return rp
+                # If we get here, the request was successful and status code is good
+                # The previous UnicodeDecodeError was during redirect resolution,
+                # if it didn't crash, response.text should be fine now.
+                robot_content = response.text
+                rp.parse(robot_content.splitlines())
+                logging.info(f"Successfully fetched and parsed robots.txt for {domain}")
 
-                    rp.parse(robot_content.splitlines())
-                    logging.info(f"Successfully fetched and parsed robots.txt for {domain}")
-
-                    c_delay = rp.crawl_delay(self.user_agent)
-                    if c_delay is not None:
-                        current_domain_delay = c_delay
-                        logging.info(f"Applying robots.txt crawl-delay of {c_delay}s for {domain}. Effective delay: {current_domain_delay}s")
-                    else:
-                        logging.info(f"No specific crawl-delay in robots.txt for {domain}. Using default delay: {self.default_delay}s")
-                        current_domain_delay = self.default_delay
-
-                elif response.status_code in (401, 403):
-                    rp.disallow_all = True
-                    logging.info(f"Access denied to robots.txt for {domain}. Disallowing all.")
-                elif response.status_code >= 400 and response.status_code < 500:
-                    # 4xx errors for robots.txt often mean it doesn't exist, which implies allow all
-                    rp.allow_all = True
-                    logging.info(f"robots.txt not found for {domain} (Status: {response.status_code}). Allowing all.")
+                c_delay = rp.crawl_delay(self.user_agent)
+                if c_delay is not None:
+                    current_domain_delay = c_delay
+                    logging.info(f"Applying robots.txt crawl-delay of {c_delay}s for {domain}. Effective delay: {current_domain_delay}s")
                 else:
-                    # Other errors (e.g., 5xx server errors, or unexpected 3xx redirects)
-                    rp.allow_all = True
-                    logging.info(f"Error fetching robots.txt for {domain} (Status: {response.status_code}). Allowing all.")
+                    logging.info(f"No specific crawl-delay in robots.txt for {domain}. Using default delay: {self.default_delay}s")
+                    current_domain_delay = self.default_delay
 
-            # Catch RequestException, which includes UnicodeDecodeError during the request lifecycle
+            except requests.exceptions.HTTPError as e:
+                # Handle 4xx or 5xx errors specifically
+                if e.response.status_code in (401, 403):
+                    rp.disallow_all = True
+                    logging.info(f"Access denied to robots.txt for {domain} (Status: {e.response.status_code}). Disallowing all.")
+                elif 400 <= e.response.status_code < 500:
+                    # 4xx errors (excluding 401/403) often mean robots.txt doesn't exist, implying allow all
+                    rp.allow_all = True
+                    logging.info(f"robots.txt not found for {domain} (Status: {e.response.status_code}). Allowing all.")
+                else:
+                    # Other HTTP errors (e.g., 5xx server errors)
+                    rp.allow_all = True
+                    logging.error(f"HTTP error fetching robots.txt for {domain} (Status: {e.response.status_code}): {e}. Allowing all.")
+            except requests.exceptions.ConnectionError as e:
+                # Handle network-related errors (DNS issues, connection refused, etc.)
+                logging.warning(f"Connection error fetching robots.txt for {domain}: {e}. Allowing all for this domain.")
+                rp.allow_all = True
+            except requests.exceptions.Timeout as e:
+                # Handle timeout errors
+                logging.warning(f"Timeout fetching robots.txt for {domain}: {e}. Allowing all for this domain.")
+                rp.allow_all = True
             except requests.exceptions.RequestException as e:
+                # This catches the UnicodeDecodeError and other general request exceptions
                 logging.warning(f"Failed to fetch or process robots.txt for {domain} due to: {e}. Allowing all for this domain.")
                 rp.allow_all = True # Default to allowing all if there's any issue fetching/parsing robots.txt
+            except Exception as e:
+                # Catch any other unexpected errors during robots.txt processing
+                logging.error(f"An unexpected error occurred while processing robots.txt for {domain}: {e}. Allowing all for this domain.")
+                rp.allow_all = True
+
 
             self.robot_parsers[domain] = rp
             self.domain_delays[domain] = current_domain_delay
-            time.sleep(self.default_delay)
+            time.sleep(self.default_delay) # Still add a small delay to avoid hammering the server
 
         return self.robot_parsers[domain]
 
@@ -552,7 +551,7 @@ class OfflineCrawler:
         logging.info("Frontier and visited URLs saved on interrupt.")
         sys.exit(0)
 
-""" if __name__ == "__main__":
+if __name__ == "__main__":
   
     seeds = ["https://visit-tubingen.co.uk/welcome-to-tubingen/",
              "https://www.tuebingen.de/",
@@ -577,5 +576,5 @@ class OfflineCrawler:
     # Run the crawler
     crawler.run()
 
-    print("\nCrawler finished.") """
+    print("\nCrawler finished.")
 
