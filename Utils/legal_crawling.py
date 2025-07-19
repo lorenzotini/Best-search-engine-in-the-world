@@ -3,7 +3,6 @@ import time
 import requests
 from urllib.parse import urljoin, urldefrag, urlparse, urlunparse 
 import nltk
-
 nltk.download("stopwords", quiet=True)
 nltk.download("punkt_tab", quiet=True)
 nltk.download("wordnet", quiet=True)
@@ -13,15 +12,13 @@ from bs4 import BeautifulSoup
 import re
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-from langdetect import detect_langs
 import heapq 
 import urllib.robotparser 
 import hashlib
 import logging
 import signal
+from Utils.text_preprocessor import preprocess_text
 
-stop_words = set(stopwords.words("english"))
-lemmatizer = WordNetLemmatizer()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -209,7 +206,7 @@ class OfflineCrawler:
             self.seen_simhashes.add(current_page_simhash)
             self._save(self.path_to_simhashes, self.seen_simhashes)
 
-            tokens_for_indexing = self._preprocess_text(soup)
+            tokens_for_indexing = preprocess_text(soup)
             if not tokens_for_indexing:
                 logging.info(f"[LANG] Skipping {url} (non-English or no extractable text).")
                 skipped_non_english += 1
@@ -459,32 +456,6 @@ class OfflineCrawler:
             set_bits += 1
         return set_bits
 
-    # MODIFIED METHOD: _preprocess_text
-    def _preprocess_text(self, soup):
-        # Extract visible text (from the original soup, not the one modified for SimHash)
-        for tag in soup(["script", "style"]):
-            tag.decompose()
-        text = soup.get_text(separator=" ")
-
-        # Language filter
-        langs = []
-        try:
-            langs = detect_langs(text)
-        except:
-            pass
-        if not any(l.lang == "en" and l.prob >= 0.9 for l in langs):
-            logging.warning("non-English page, skipping.")
-            return None # Return None to indicate this page should be skipped for indexing
-        
-        text = text.lower()
-        text = re.sub(r"[^a-z\s]", " ", text)
-        text = re.sub(r"\s+", " ", text).strip()
-        tokens = word_tokenize(text)
-        filtered_tokens = [
-            lemmatizer.lemmatize(token) for token in tokens
-            if token not in stop_words and len(token) > 2
-        ]
-        return filtered_tokens
 
     # MODIFIED METHOD: _get_id
     def _get_id(self, url):
