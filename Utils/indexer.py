@@ -22,65 +22,163 @@ class Indexer:
 
 
     def get_candidates(self, query, use_proximity=False, proximity_range=3):
-        """
-        Get candidate document IDs for the given query.
+            """
+            Get candidate document IDs for the given query.
 
+            Args:
+                query (list of str): List of query terms (already preprocessed)
+                use_proximity (bool): If True, use _intersect_range for positional constraints.
+                proximity_range (int): Max distance between terms if use_proximity is True.
+
+            Returns:
+                list of int: Candidate document IDs.
+            """
+            if not query:
+                return []
+
+            query = [term.lower() for term in query]  # Normalize
+
+            if use_proximity:
+                # Positional intersection (for phrase search / proximity search)
+                if query[0] not in self.pos_index_dict:
+                    return []
+
+                candidates = self.pos_index_dict[query[0]]
+                
+                for term in query[1:]:
+                    if term not in self.pos_index_dict:
+                        return []
+                    candidates = self._intersect_range(candidates, self.pos_index_dict[term], proximity_range)
+                    # After first iteration, candidates becomes a list of docIDs only
+                    # For further _intersect_range calls, we need to reconstruct position lists
+                    if not candidates:
+                        return []
+                    candidates = [
+                        [doc_id, [pos for pos in self.pos_index_dict[term] if pos[0] == doc_id][0][1]]
+                        for doc_id in candidates
+                    ]
+                
+                return [doc_id for doc_id, _ in candidates]
+
+            else:
+                # Standard AND search using skip pointers
+                if query[0] not in self.skip_dict:
+                    return []
+
+                candidates = self.skip_dict[query[0]]
+
+                for term in query[1:]:
+                    if term not in self.skip_dict:
+                        return []
+                    candidates = self._intersect_skip(candidates, self.skip_dict[term])
+                    if not candidates:
+                        return []
+
+                    # After _intersect_skip, candidates is a list of docIDs
+                    # For the next iteration, convert back to [docID, skip_index, docID_at_skip]
+                    # But since we don't have skip pointers anymore, wrap it without skips
+                    candidates = [[doc_id, None, None] for doc_id in candidates]
+
+                return [entry[0] for entry in candidates]
+            
+
+    def get_union_candidates(self, query):
+        """
+        Retrieve documents that contain at least one of the query terms.
         Args:
-            query (list of str): List of query terms (already preprocessed)
-            use_proximity (bool): If True, use _intersect_range for positional constraints.
-            proximity_range (int): Max distance between terms if use_proximity is True.
+            query: list of str -> preprocessed query tokens
 
         Returns:
-            list of int: Candidate document IDs.
+            set of int: Candidate document IDs
         """
-        if not query:
-            return []
+        candidate_ids = set()
+        for term in query:
+            if term in self.skip_dict:
+                postings = self.skip_dict[term]
+                ids = [entry[0] for entry in postings]
+                candidate_ids.update(ids)
+        return list(candidate_ids)
 
-        query = [term.lower() for term in query]  # Normalize
+    def proximity_bonus(self, query, doc_id, window=3):
+        """
+        Returns a bonus score if query terms occur within a certain window in the document.
 
-        if use_proximity:
-            # Positional intersection (for phrase search / proximity search)
-            if query[0] not in self.pos_index_dict:
-                return []
+        Args:
+            query: list of str -> preprocessed query tokens
+            doc_id: int -> document ID to check
+            window: int -> maximum allowed distance between terms
 
-            candidates = self.pos_index_dict[query[0]]
-            
-            for term in query[1:]:
-                if term not in self.pos_index_dict:
-                    return []
-                candidates = self._intersect_range(candidates, self.pos_index_dict[term], proximity_range)
-                # After first iteration, candidates becomes a list of docIDs only
-                # For further _intersect_range calls, we need to reconstruct position lists
-                if not candidates:
-                    return []
-                candidates = [
-                    [doc_id, [pos for pos in self.pos_index_dict[term] if pos[0] == doc_id][0][1]]
-                    for doc_id in candidates
-                ]
-            
-            return [doc_id for doc_id, _ in candidates]
+        Returns:
+            float: Bonus score (e.g., 1.0 for phrase match, 0.5 for close proximity, 0 otherwise)
+        """
+        # Collect positions of all query terms in the given doc
+        positions_list = []
+        for term in query:
+            if term not in self.pos_index_dict:
+                return 0  # If term doesn't exist in corpus, no bonus
 
-        else:
-            # Standard AND search using skip pointers
-            if query[0] not in self.skip_dict:
-                return []
+            term_postings = self.pos_index_dict[term]
+            doc_entry = next((entry for entry in term_postings if entry[0] == doc_id), None)
+            if doc_entry is None:
+                return 0  # Term not in this doc
+            positions_list.append(doc_entry[1])  # Add list of positions
 
-            candidates = self.skip_dict[query[0]]
+        # For phrase match (exact sequence):
+        if self._is_exact_phrase(positions_list):
+            return 1.0  # Full bonus
 
-            for term in query[1:]:
-                if term not in self.skip_dict:
-                    return []
-                candidates = self._intersect_skip(candidates, self.skip_dict[term])
-                if not candidates:
-                    return []
+        # For proximity match (within window)
+        if self._in_proximity(positions_list, window):
+            return 0.5  # Partial bonus
 
-                # After _intersect_skip, candidates is a list of docIDs
-                # For the next iteration, convert back to [docID, skip_index, docID_at_skip]
-                # But since we don't have skip pointers anymore, wrap it without skips
-                candidates = [[doc_id, None, None] for doc_id in candidates]
+        return 0
 
-            return [entry[0] for entry in candidates]
+    def _is_exact_phrase(self, positions_list):
+        """
+        Check if terms occur as an exact phrase in order.
 
+        Args:
+            positions_list: list of lists -> positions of each term in doc
+
+        Returns:
+            bool: True if terms appear consecutively in order
+        """
+        # Start with positions of the first term
+        first_term_positions = positions_list[0]
+
+        for pos in first_term_positions:
+            match = True
+            current_pos = pos
+            for i in range(1, len(positions_list)):
+                # Check if next term occurs at current_pos + 1
+                if (current_pos + 1) in positions_list[i]:
+                    current_pos += 1
+                else:
+                    match = False
+                    break
+            if match:
+                return True  # Found exact phrase
+        return False
+
+
+    def _in_proximity(self, positions_list, window):
+        """
+        Check if terms occur close to each other (order doesn't matter).
+
+        Args:
+            positions_list: list of lists -> positions of each term in doc
+            window: int -> max distance between farthest and closest term
+
+        Returns:
+            bool: True if terms are within the window somewhere in the doc
+        """
+        import itertools
+
+        # Create all combinations of one position per term
+        for combination in itertools.product(*positions_list):
+            if max(combination) - min(combination) <= window:
+                return True
+        return False
 
     def _index_documents(self):
         print('Indexing...')
