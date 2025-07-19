@@ -49,7 +49,7 @@ ind = Indexer()
 #ind.run()
 
 
-for r in search('dog', use_hybrid_model=False, use_query_expansion=True)[:10]:
+for r in search('chilling and called', use_hybrid_model=False, use_query_expansion=True)[:10]:
     print(r)
 
 # TODO whats inside the pkl docs if i re run the crawler and indexer?
