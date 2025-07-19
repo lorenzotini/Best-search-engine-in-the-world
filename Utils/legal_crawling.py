@@ -20,9 +20,6 @@ import signal
 from Utils.text_preprocessor import preprocess_text
 
 
-stop_words = set(stopwords.words("english"))
-lemmatizer = WordNetLemmatizer()
-
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] [%(levelname)s] %(message)s',
