@@ -4,7 +4,7 @@ import requests
 from urllib.parse import urljoin, urldefrag, urlparse, urlunparse 
 import nltk
 
-from Utils.bm25 import BM25
+from bm25 import BM25
 nltk.download("stopwords", quiet=True)
 nltk.download("punkt_tab", quiet=True)
 nltk.download("wordnet", quiet=True)
@@ -20,7 +20,7 @@ import urllib.robotparser
 import hashlib
 import logging
 import signal
-from Utils.indexer import Indexer
+from indexer import Indexer
 
 stop_words = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
@@ -241,13 +241,7 @@ class OfflineCrawler:
         logging.info(f"Remaining URLs in frontier (not crawled): {len(self.frontier)}")
 
 
-    # NEW METHOD: _get_robot_parser
     def _get_robot_parser(self, url):
-        """
-        Retrieves or creates a RobotFileParser for a given URL's domain.
-        Caches parsers to avoid re-fetching robots.txt for the same domain.
-        Handles fetching robots.txt for the first time and determining crawl delay.
-        """
         parsed_url = urlparse(url)
         domain = parsed_url.netloc
 
@@ -256,50 +250,65 @@ class OfflineCrawler:
             rp = urllib.robotparser.RobotFileParser()
             rp.set_url(robot_url)
 
-            current_domain_delay = self.default_delay # Initialize with default
+            current_domain_delay = self.default_delay
 
             try:
                 headers = {'User-Agent': self.user_agent}
+                # The error occurs here or during subsequent redirect resolution
                 response = requests.get(robot_url, headers=headers, timeout=5)
-                
+
                 if response.status_code == 200:
-                    rp.parse(response.text.splitlines())
+                    # Requests *should* have handled encoding for response.text by now,
+                    # but if there's still an issue with the _content_ (less likely
+                    # with your current traceback, but good practice):
+                    try:
+                        robot_content = response.text
+                    except UnicodeDecodeError:
+                        logging.warning(f"UTF-8 decode failed for robots.txt content from {domain}. Trying ISO-8859-1.")
+                        try:
+                            robot_content = response.content.decode('iso-8859-1')
+                        except UnicodeDecodeError:
+                            logging.error(f"Failed to decode robots.txt content for {domain} with ISO-8859-1. Allowing all.")
+                            rp.allow_all = True
+                            self.robot_parsers[domain] = rp
+                            self.domain_delays[domain] = current_domain_delay
+                            time.sleep(self.default_delay)
+                            return rp
+
+                    rp.parse(robot_content.splitlines())
                     logging.info(f"Successfully fetched and parsed robots.txt for {domain}")
-                    
-                    # Get crawl delay from robots.txt
-                    c_delay = rp.crawl_delay(self.user_agent) 
+
+                    c_delay = rp.crawl_delay(self.user_agent)
                     if c_delay is not None:
-                        # Use the robots.txt delay directly if specified, to speed up if allowed.
-                        current_domain_delay = c_delay 
+                        current_domain_delay = c_delay
                         logging.info(f"Applying robots.txt crawl-delay of {c_delay}s for {domain}. Effective delay: {current_domain_delay}s")
                     else:
-                        # If no specific crawl-delay from robots.txt, use our default
                         logging.info(f"No specific crawl-delay in robots.txt for {domain}. Using default delay: {self.default_delay}s")
-                        current_domain_delay = self.default_delay 
-                    
+                        current_domain_delay = self.default_delay
+
                 elif response.status_code in (401, 403):
                     rp.disallow_all = True
                     logging.info(f"Access denied to robots.txt for {domain}. Disallowing all.")
                 elif response.status_code >= 400 and response.status_code < 500:
+                    # 4xx errors for robots.txt often mean it doesn't exist, which implies allow all
                     rp.allow_all = True
                     logging.info(f"robots.txt not found for {domain} (Status: {response.status_code}). Allowing all.")
                 else:
+                    # Other errors (e.g., 5xx server errors, or unexpected 3xx redirects)
                     rp.allow_all = True
                     logging.info(f"Error fetching robots.txt for {domain} (Status: {response.status_code}). Allowing all.")
 
+            # Catch RequestException, which includes UnicodeDecodeError during the request lifecycle
             except requests.exceptions.RequestException as e:
-                logging.warning(f"Failed to fetch robots.txt for {domain}: {e}. Allowing all.")
-                rp.allow_all = True
+                logging.warning(f"Failed to fetch or process robots.txt for {domain} due to: {e}. Allowing all for this domain.")
+                rp.allow_all = True # Default to allowing all if there's any issue fetching/parsing robots.txt
 
             self.robot_parsers[domain] = rp
-            self.domain_delays[domain] = current_domain_delay # Store the determined delay for this domain
-            
-            # This sleep is for fetching robots.txt itself, not the content pages.
-            time.sleep(self.default_delay) 
+            self.domain_delays[domain] = current_domain_delay
+            time.sleep(self.default_delay)
 
         return self.robot_parsers[domain]
 
-    # NEW/MODIFIED METHOD: _calculate_priority
     def _calculate_priority(self, url, anchor_text, source_page_tokens, current_depth):
         score = 0
         # Define weights for each relevance tier
@@ -493,4 +502,29 @@ class OfflineCrawler:
         self._save_all()
         sys.exit(0)
 
+if __name__ == "__main__":
+  
+    seeds = ["https://www.tuebingen.de/",
+             "https://www.tuebingen.de/#",
+             "https://uni-tuebingen.de/en/",
+             "https://en.wikipedia.org/wiki/T%C3%BCbingen",
+             "https://www.germany.travel/en/cities-culture/tuebingen.html",
+             ""
+             ]
+
+    # Initialize the crawler
+    # max_depth: How many layers deep the crawler will go. Start with 1 or 2 for testing.
+    # delay: Delay between requests to the same domain (in seconds). Adjust as needed.
+    # simhash_threshold: How similar content can be before being considered a duplicate.
+    crawler = OfflineCrawler(
+        seeds=seeds,
+        max_depth=2,  # Start with a low depth for quick tests
+        delay=0.5,      # Be polite with the crawl delay
+        simhash_threshold=3
+    )
+
+    # Run the crawler
+    crawler.run()
+
+    print("\nCrawler finished.")
 
