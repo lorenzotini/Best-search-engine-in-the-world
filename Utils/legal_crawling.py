@@ -51,11 +51,6 @@ class OfflineCrawler:
         self.visited_urls_in_queue = self._load(self.path_to_visited_urls_in_queue) # NEW: Load persistent visited URLs
 
         signal.signal(signal.SIGINT, self._handle_interrupt) 
-        
-        # Priority queue for frontier: (priority, url, depth)
-        self.frontier = []
-        # Keep track of URLs that have been added to the frontier to avoid duplicates
-        self.visited_urls_in_queue = set()
 
         # For mapping URL to doc_id (helpful for debugging and future relevance)
         self.url_to_doc_id = {url_info['url']: doc_id for doc_id, url_info in self.crawled_data.items() if 'url' in url_info}
@@ -551,30 +546,67 @@ class OfflineCrawler:
         logging.info("Frontier and visited URLs saved on interrupt.")
         sys.exit(0)
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
   
-    seeds = ["https://visit-tubingen.co.uk/welcome-to-tubingen/",
-             "https://www.tuebingen.de/",
-             "https://www.tuebingen.de/#",
-             "https://uni-tuebingen.de/en/",
-             "https://en.wikipedia.org/wiki/T%C3%BCbingen",
-             "https://www.germany.travel/en/cities-culture/tuebingen.html",
-             "https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html"
-             ]
+#     seeds = [
+#         "https://visit-tubingen.co.uk/welcome-to-tubingen/",
+#         "https://www.tuebingen.de/",
+#         "https://uni-tuebingen.de/en/",
+#         "https://en.wikipedia.org/wiki/T%C3%BCbingen",
+#         "https://www.germany.travel/en/cities-culture/tuebingen.html",
+#         "https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html",
+#         "https://www.europeanbestdestinations.com/destinations/tubingen/",
+#         "https://www.tuebingen.de/en/",
+#         "https://www.stadtmuseum-tuebingen.de/english/",
+#         "https://www.tuebingen-info.de/",
+#         "https://tuebingenresearchcampus.com/en/",
+#         "https://www.welcome.uni-tuebingen.de/",
+#         "https://integreat.app/tuebingen/en/news/tu-news",
+#         "https://tunewsinternational.com/category/news-in-english/",
+#         "https://historicgermany.travel/historic-germany/tubingen/",
+#         "https://visit-tubingen.co.uk/",
+#         "https://www.germansights.com/tubingen/",
+#         "https://www.tripadvisor.com/Restaurants-g198539-Tubingen_Baden_Wurttemberg.html",
+#         "https://www.tripadvisor.com/Restaurants-g198539-zfp58-Tubingen_Baden_Wurttemberg.html",
+#         "https://www.tripadvisor.com/Attractions-g198539-Activities-c36-Tubingen_Baden_Wurttemberg.html",
+#         "https://theculturetrip.com/europe/germany/articles/the-best-things-to-see-and-do-in-tubingen-germany",
+#         "https://www.mygermanyvacation.com/best-things-to-do-and-see-in-tubingen-germany/",
+#         "https://justinpluslauren.com/things-to-do-in-tubingen-germany/",
+#         "https://simplifylivelove.com/tubingen-germany/",
+#         "https://wanderlog.com/list/geoCategory/199488/where-to-eat-best-restaurants-in-tubingen",
+#         "https://wanderlog.com/list/geoCategory/312176/best-spots-for-lunch-in-tubingen",
+#         "https://guide.michelin.com/us/en/baden-wurttemberg/tbingen/restaurants",
+#         "https://www.outdooractive.com/en/eat-and-drink/tuebingen/eat-and-drink-in-tuebingen/21873363/",
+#         "https://www.opentable.com/food-near-me/stadt-tubingen-germany",
+#         "https://www.1821tuebingen.de/",
+#         "https://www.historicgermany.travel/tuebingen/",
+#         "https://www.expedia.com/Things-To-Do-In-Tubingen.d55289.Travel-Guide-Activities",
+#         "https://www.lonelyplanet.com/germany/baden-wurttemberg/tubingen",
+#         "https://www.tripadvisor.com/Attraction_Review-g198539-d14983273-Reviews-Tubingen_Weinwanderweg-Tubingen_Baden_Wurttemberg.html",
+#         "https://www.yelp.com/search?find_desc=Restaurants&find_loc=T%C3%BCbingen",
+#         "https://guide.michelin.com/en/baden-wurttemberg/tubingen/restaurants",
+#         "https://wanderlog.com/geoInMonth/10053/7/tubingen-in-july",
+#         "https://www.wanderlog.com/list/geoCategory/76026/best-restaurants-in-tubingen",
+#         "https://en.wikivoyage.org/wiki/T%C3%BCbingen",
+#         "https://en.wikivoyage.org/wiki/T%C3%BCbingen#Eat",
+#         "https://en.wikivoyage.org/wiki/T%C3%BCbingen#Drink",
+#         "https://www.mygermanyvacation.com/things-to-do-in-tubingen/"
+#     ]
+            
 
-    # Initialize the crawler
-    # max_depth: How many layers deep the crawler will go. Start with 1 or 2 for testing.
-    # delay: Delay between requests to the same domain (in seconds). Adjust as needed.
-    # simhash_threshold: How similar content can be before being considered a duplicate.
-    crawler = OfflineCrawler(
-        seeds=seeds,
-        max_depth=2,  # Start with a low depth for quick tests
-        delay=0.5,      # Be polite with the crawl delay
-        simhash_threshold=3
-    )
+#     # Initialize the crawler
+#     # max_depth: How many layers deep the crawler will go. Start with 1 or 2 for testing.
+#     # delay: Delay between requests to the same domain (in seconds). Adjust as needed.
+#     # simhash_threshold: How similar content can be before being considered a duplicate.
+#     crawler = OfflineCrawler(
+#         seeds=seeds,
+#         max_depth=2,  # Start with a low depth for quick tests
+#         delay=0.5,      # Be polite with the crawl delay
+#         simhash_threshold=3
+#     )
 
-    # Run the crawler
-    crawler.run()
+#     # Run the crawler
+#     crawler.run()
 
-    print("\nCrawler finished.")
+#     print("\nCrawler finished.")
 
