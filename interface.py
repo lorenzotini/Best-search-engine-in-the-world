@@ -33,6 +33,7 @@ def document_sentiment_analysis_binary(data : list[str], pipeline, seed= 0, rand
         doc_analysis["negative"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "NEGATIVE" ]) / len(analysis)
     else:
         doc_analysis["negative"] = 0
+        
     if analysis["label" == "NEUTRAL"] != None:
         doc_analysis["neutral"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "neutral" ]) / len(analysis)
     else:

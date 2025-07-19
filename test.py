@@ -1,51 +1,63 @@
 import requests
 from bs4 import BeautifulSoup
-from newspaper import Article
 
-def extract_metadata(url):
-    try:
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        print(f"Request failed: {e}")
-        return None
+url = "https://en.wikipedia.org/wiki/Feuerzangenbowle"
 
-    soup = BeautifulSoup(response.text, 'html.parser')
+response = requests.get(url, timeout=0.2)
+response.raise_for_status()
+soup = BeautifulSoup(response.text, 'html.parser')
 
-    data = {
-        "url": url,
-        "title": None,
-        "summary": None,
-        "date": None
-    }
+def extract_title_from_soup(soup):
+    """
+    Extracts a meaningful title from a BeautifulSoup object.
+    Tries multiple methods to find the best title.
+    """
 
-    # Title from <title> or <meta property="og:title">
-    title = soup.title.string if soup.title else None
+    # 1. <title> tag (basic HTML)
+    title = soup.title.string.strip() if soup.title and soup.title.string else ""
+
+    # 2. Open Graph metadata: <meta property="og:title" content="...">
     og_title = soup.find("meta", property="og:title")
     if og_title and og_title.get("content"):
-        title = og_title["content"]
-    data["title"] = title
+        title = og_title["content"].strip()
 
-    # Summary from <meta name="description"> or <meta property="og:description">
-    description = soup.find("meta", attrs={"name": "description"}) or \
-                  soup.find("meta", property="og:description")
-    if description and description.get("content"):
-        data["summary"] = description["content"]
+    # 3. Twitter Cards metadata: <meta name="twitter:title" content="...">
+    twitter_title = soup.find("meta", attrs={"name": "twitter:title"})
+    if twitter_title and twitter_title.get("content"):
+        title = twitter_title["content"].strip()
 
-    # Date from common tags
-    date = (
-        soup.find("meta", {"name": "pubdate"}) or
-        soup.find("meta", {"name": "publish-date"}) or
-        soup.find("meta", {"property": "article:published_time"}) or
-        soup.find("time")
-    )
-    if date:
-        content = date.get("content") or date.get_text(strip=True)
-        data["date"] = content
-    else:
-        a = Article(url)
-        a.download()
-        a.parse()
-        data["date"] = a.publish_date
+    return title
 
-    return data
+
+
+def extract_description_from_soup(soup):
+    """
+    Extracts a meaningful description from a BeautifulSoup object.
+    Tries meta tags first, then finds the first non-empty <p> tag.
+    """
+
+    # Step 1: Try meta tags
+    meta_keys = [
+        {"name": "description"},
+        {"property": "og:description"},
+        {"name": "twitter:description"},
+    ]
+
+    for attrs in meta_keys:
+        tag = soup.find("meta", attrs=attrs)
+        if tag and tag.get("content"):
+            return tag["content"].strip()
+
+    # Step 2: Look in the main content area
+    content = soup.find("div", id="mw-content-text") or soup.body
+    if content:
+        for p in content.find_all("p"):
+            text = p.get_text(strip=True)
+            # Skip if paragraph is empty or just punctuation/refs
+            if text and len(text) > 40:  # Adjust length threshold as needed
+                return text
+
+    return "No description available."
+
+
+print("Title:", title, "\nDescription:", extract_description_from_soup(soup))

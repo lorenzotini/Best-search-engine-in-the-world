@@ -1,0 +1,891 @@
+[2025-07-17 20:00:05] [WARNING]  * Debugger is active!
+[2025-07-17 20:00:05] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:00:20] [INFO] 127.0.0.1 - - [17/Jul/2025 20:00:20] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:00:20] [INFO] 127.0.0.1 - - [17/Jul/2025 20:00:20] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:00:20] [INFO] 127.0.0.1 - - [17/Jul/2025 20:00:20] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:00:20] [INFO] 127.0.0.1 - - [17/Jul/2025 20:00:20] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=IAJo7GDMRkSgc7phTzN6 HTTP/1.1" 200 -
+[2025-07-17 20:00:52] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-17 20:00:52] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-17 20:00:52] [INFO]  * Restarting with stat
+[2025-07-17 20:00:58] [WARNING]  * Debugger is active!
+[2025-07-17 20:00:58] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:01:04] [INFO] 127.0.0.1 - - [17/Jul/2025 20:01:04] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:01:04] [INFO] 127.0.0.1 - - [17/Jul/2025 20:01:04] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:01:04] [INFO] 127.0.0.1 - - [17/Jul/2025 20:01:04] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:01:04] [INFO] 127.0.0.1 - - [17/Jul/2025 20:01:04] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=lDShxyHYgeeUZ1jbJi8z HTTP/1.1" 200 -
+[2025-07-17 20:01:43] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:01:46] [INFO]  * Restarting with stat
+[2025-07-17 20:01:54] [WARNING]  * Debugger is active!
+[2025-07-17 20:01:54] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:02:01] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:02:03] [INFO]  * Restarting with stat
+[2025-07-17 20:02:10] [WARNING]  * Debugger is active!
+[2025-07-17 20:02:10] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:02:37] [INFO] 127.0.0.1 - - [17/Jul/2025 20:02:37] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:02:37] [INFO] 127.0.0.1 - - [17/Jul/2025 20:02:37] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:02:37] [INFO] 127.0.0.1 - - [17/Jul/2025 20:02:37] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:02:37] [INFO] 127.0.0.1 - - [17/Jul/2025 20:02:37] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=J6JYtTfRLTOONAtmNjZa HTTP/1.1" 200 -
+[2025-07-17 20:02:52] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:02:54] [INFO]  * Restarting with stat
+[2025-07-17 20:03:02] [WARNING]  * Debugger is active!
+[2025-07-17 20:03:02] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:03:13] [INFO] 127.0.0.1 - - [17/Jul/2025 20:03:13] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:03:13] [INFO] 127.0.0.1 - - [17/Jul/2025 20:03:13] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:03:13] [INFO] 127.0.0.1 - - [17/Jul/2025 20:03:13] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:03:13] [INFO] 127.0.0.1 - - [17/Jul/2025 20:03:13] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=LHYI0n8WN3SeWyKTNiyi HTTP/1.1" 200 -
+[2025-07-17 20:03:44] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:03:46] [INFO]  * Restarting with stat
+[2025-07-17 20:03:55] [WARNING]  * Debugger is active!
+[2025-07-17 20:03:55] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:04:35] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-17 20:04:35] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-17 20:04:35] [INFO]  * Restarting with stat
+[2025-07-17 20:04:43] [WARNING]  * Debugger is active!
+[2025-07-17 20:04:43] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:04:51] [INFO] 127.0.0.1 - - [17/Jul/2025 20:04:51] "GET / HTTP/1.1" 200 -
+[2025-07-17 20:04:51] [INFO] 127.0.0.1 - - [17/Jul/2025 20:04:51] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:04:51] [INFO] 127.0.0.1 - - [17/Jul/2025 20:04:51] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:04:51] [INFO] 127.0.0.1 - - [17/Jul/2025 20:04:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:06:22] [INFO] 127.0.0.1 - - [17/Jul/2025 20:06:22] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:06:22] [INFO] 127.0.0.1 - - [17/Jul/2025 20:06:22] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:08:40] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:08:42] [INFO]  * Restarting with stat
+[2025-07-17 20:08:50] [WARNING]  * Debugger is active!
+[2025-07-17 20:08:50] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:08:59] [INFO] 127.0.0.1 - - [17/Jul/2025 20:08:59] "GET / HTTP/1.1" 200 -
+[2025-07-17 20:08:59] [INFO] 127.0.0.1 - - [17/Jul/2025 20:08:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:10:02] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:10:04] [INFO]  * Restarting with stat
+[2025-07-17 20:10:12] [WARNING]  * Debugger is active!
+[2025-07-17 20:10:12] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:10:12] [INFO] 127.0.0.1 - - [17/Jul/2025 20:10:12] "GET / HTTP/1.1" 200 -
+[2025-07-17 20:10:12] [INFO] 127.0.0.1 - - [17/Jul/2025 20:10:12] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:10:42] [INFO] 127.0.0.1 - - [17/Jul/2025 20:10:42] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:10:42] [INFO] 127.0.0.1 - - [17/Jul/2025 20:10:42] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:11:46] [INFO] 127.0.0.1 - - [17/Jul/2025 20:11:46] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:11:46] [INFO] 127.0.0.1 - - [17/Jul/2025 20:11:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:14:22] [INFO] 127.0.0.1 - - [17/Jul/2025 20:14:22] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:14:22] [INFO] 127.0.0.1 - - [17/Jul/2025 20:14:22] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:14:33] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:14:36] [INFO]  * Restarting with stat
+[2025-07-17 20:14:45] [WARNING]  * Debugger is active!
+[2025-07-17 20:14:45] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:15:22] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:15:23] [INFO]  * Restarting with stat
+[2025-07-17 20:15:32] [WARNING]  * Debugger is active!
+[2025-07-17 20:15:32] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:15:39] [INFO] 127.0.0.1 - - [17/Jul/2025 20:15:39] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:15:39] [INFO] 127.0.0.1 - - [17/Jul/2025 20:15:39] "GET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+[2025-07-17 20:15:39] [INFO] 127.0.0.1 - - [17/Jul/2025 20:15:39] "GET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+[2025-07-17 20:15:39] [INFO] 127.0.0.1 - - [17/Jul/2025 20:15:39] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=tFyiioD5x9iiXAxcjFls HTTP/1.1" 200 -
+[2025-07-17 20:15:53] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:15:55] [INFO]  * Restarting with stat
+[2025-07-17 20:16:02] [WARNING]  * Debugger is active!
+[2025-07-17 20:16:02] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:16:12] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:16:14] [INFO]  * Restarting with stat
+[2025-07-17 20:16:23] [WARNING]  * Debugger is active!
+[2025-07-17 20:16:23] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:16:35] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:16:36] [INFO]  * Restarting with stat
+[2025-07-17 20:16:45] [WARNING]  * Debugger is active!
+[2025-07-17 20:16:45] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:16:45] [INFO] 127.0.0.1 - - [17/Jul/2025 20:16:45] "GET / HTTP/1.1" 200 -
+[2025-07-17 20:16:45] [INFO] 127.0.0.1 - - [17/Jul/2025 20:16:45] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:17:46] [INFO] 127.0.0.1 - - [17/Jul/2025 20:17:46] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:17:46] [INFO] 127.0.0.1 - - [17/Jul/2025 20:17:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:17:59] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:18:01] [INFO]  * Restarting with stat
+[2025-07-17 20:18:10] [WARNING]  * Debugger is active!
+[2025-07-17 20:18:10] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:18:17] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:18:18] [INFO]  * Restarting with stat
+[2025-07-17 20:18:24] [WARNING]  * Debugger is active!
+[2025-07-17 20:18:24] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:18:34] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:18:35] [INFO]  * Restarting with stat
+[2025-07-17 20:18:41] [WARNING]  * Debugger is active!
+[2025-07-17 20:18:41] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:19:19] [INFO] 127.0.0.1 - - [17/Jul/2025 20:19:19] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:19:19] [INFO] 127.0.0.1 - - [17/Jul/2025 20:19:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:20:01] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:20:03] [INFO]  * Restarting with stat
+[2025-07-17 20:20:12] [WARNING]  * Debugger is active!
+[2025-07-17 20:20:12] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:20:14] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:20:16] [INFO]  * Restarting with stat
+[2025-07-17 20:20:22] [WARNING]  * Debugger is active!
+[2025-07-17 20:20:22] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:20:22] [INFO] 127.0.0.1 - - [17/Jul/2025 20:20:22] "GET / HTTP/1.1" 200 -
+[2025-07-17 20:20:22] [INFO] 127.0.0.1 - - [17/Jul/2025 20:20:22] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:20:38] [INFO] 127.0.0.1 - - [17/Jul/2025 20:20:38] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:20:38] [INFO] 127.0.0.1 - - [17/Jul/2025 20:20:38] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:21:37] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:21:39] [INFO]  * Restarting with stat
+[2025-07-17 20:21:48] [WARNING]  * Debugger is active!
+[2025-07-17 20:21:48] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:22:09] [INFO] 127.0.0.1 - - [17/Jul/2025 20:22:09] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:22:09] [INFO] 127.0.0.1 - - [17/Jul/2025 20:22:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:22:23] [INFO] 127.0.0.1 - - [17/Jul/2025 20:22:23] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:22:25] [INFO] 127.0.0.1 - - [17/Jul/2025 20:22:25] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:22:25] [INFO] 127.0.0.1 - - [17/Jul/2025 20:22:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:22:52] [INFO] 127.0.0.1 - - [17/Jul/2025 20:22:52] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:22:52] [INFO] 127.0.0.1 - - [17/Jul/2025 20:22:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:23:03] [INFO] 127.0.0.1 - - [17/Jul/2025 20:23:03] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:23:03] [INFO] 127.0.0.1 - - [17/Jul/2025 20:23:03] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:23:14] [INFO] 127.0.0.1 - - [17/Jul/2025 20:23:14] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:23:14] [INFO] 127.0.0.1 - - [17/Jul/2025 20:23:14] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:23:52] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:23:54] [INFO]  * Restarting with stat
+[2025-07-17 20:24:02] [WARNING]  * Debugger is active!
+[2025-07-17 20:24:03] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:24:25] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:24:27] [INFO]  * Restarting with stat
+[2025-07-17 20:24:33] [WARNING]  * Debugger is active!
+[2025-07-17 20:24:33] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:24:43] [INFO] 127.0.0.1 - - [17/Jul/2025 20:24:43] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:24:43] [INFO] 127.0.0.1 - - [17/Jul/2025 20:24:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:24:50] [INFO] 127.0.0.1 - - [17/Jul/2025 20:24:50] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:24:50] [INFO] 127.0.0.1 - - [17/Jul/2025 20:24:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:26:06] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:26:08] [INFO]  * Restarting with stat
+[2025-07-17 20:26:16] [WARNING]  * Debugger is active!
+[2025-07-17 20:26:16] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:26:25] [INFO] 127.0.0.1 - - [17/Jul/2025 20:26:25] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:26:25] [INFO] 127.0.0.1 - - [17/Jul/2025 20:26:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:26:39] [INFO] 127.0.0.1 - - [17/Jul/2025 20:26:39] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:26:39] [INFO] 127.0.0.1 - - [17/Jul/2025 20:26:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:28:04] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:28:06] [INFO]  * Restarting with stat
+[2025-07-17 20:28:13] [WARNING]  * Debugger is active!
+[2025-07-17 20:28:13] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:32:06] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:32:08] [INFO]  * Restarting with stat
+[2025-07-17 20:32:17] [WARNING]  * Debugger is active!
+[2025-07-17 20:32:17] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:32:24] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:32:26] [INFO]  * Restarting with stat
+[2025-07-17 20:32:34] [WARNING]  * Debugger is active!
+[2025-07-17 20:32:34] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:32:43] [INFO] 127.0.0.1 - - [17/Jul/2025 20:32:43] "POST / HTTP/1.1" 200 -
+[2025-07-17 20:32:43] [INFO] 127.0.0.1 - - [17/Jul/2025 20:32:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:33:36] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:33:38] [INFO]  * Restarting with stat
+[2025-07-17 20:33:47] [WARNING]  * Debugger is active!
+[2025-07-17 20:33:47] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:34:07] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:34:09] [INFO]  * Restarting with stat
+[2025-07-17 20:34:18] [WARNING]  * Debugger is active!
+[2025-07-17 20:34:18] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:34:26] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:34:27] [INFO]  * Restarting with stat
+[2025-07-17 20:34:34] [WARNING]  * Debugger is active!
+[2025-07-17 20:34:34] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:34:50] [INFO] 127.0.0.1 - - [17/Jul/2025 20:34:50] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:34:50] [INFO] 127.0.0.1 - - [17/Jul/2025 20:34:50] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:34:50] [INFO] 127.0.0.1 - - [17/Jul/2025 20:34:50] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:34:50] [INFO] 127.0.0.1 - - [17/Jul/2025 20:34:50] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=bvwsO1LnSE3ZL8F7k552 HTTP/1.1" 200 -
+[2025-07-17 20:35:04] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:35:08] [INFO]  * Restarting with stat
+[2025-07-17 20:35:16] [WARNING]  * Debugger is active!
+[2025-07-17 20:35:16] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:35:19] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:35:20] [INFO]  * Restarting with stat
+[2025-07-17 20:35:26] [WARNING]  * Debugger is active!
+[2025-07-17 20:35:26] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:35:35] [INFO] 127.0.0.1 - - [17/Jul/2025 20:35:35] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:35:35] [INFO] 127.0.0.1 - - [17/Jul/2025 20:35:35] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:35:35] [INFO] 127.0.0.1 - - [17/Jul/2025 20:35:35] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:35:35] [INFO] 127.0.0.1 - - [17/Jul/2025 20:35:35] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=B5IZfx3c1zv91j233Efv HTTP/1.1" 200 -
+[2025-07-17 20:35:56] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:36:00] [INFO]  * Restarting with stat
+[2025-07-17 20:36:09] [WARNING]  * Debugger is active!
+[2025-07-17 20:36:09] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:36:20] [INFO] 127.0.0.1 - - [17/Jul/2025 20:36:20] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:36:20] [INFO] 127.0.0.1 - - [17/Jul/2025 20:36:20] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:36:20] [INFO] 127.0.0.1 - - [17/Jul/2025 20:36:20] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:36:20] [INFO] 127.0.0.1 - - [17/Jul/2025 20:36:20] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=v0VMVJ0z366VJojklxd5 HTTP/1.1" 200 -
+[2025-07-17 20:36:37] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:36:40] [INFO]  * Restarting with stat
+[2025-07-17 20:36:49] [WARNING]  * Debugger is active!
+[2025-07-17 20:36:49] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:36:58] [INFO] 127.0.0.1 - - [17/Jul/2025 20:36:58] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:36:58] [INFO] 127.0.0.1 - - [17/Jul/2025 20:36:58] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:36:58] [INFO] 127.0.0.1 - - [17/Jul/2025 20:36:58] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:36:58] [INFO] 127.0.0.1 - - [17/Jul/2025 20:36:58] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=NDK2VsIwXDrNOVU0V4pi HTTP/1.1" 200 -
+[2025-07-17 20:39:12] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:39:14] [INFO]  * Restarting with stat
+[2025-07-17 20:39:23] [WARNING]  * Debugger is active!
+[2025-07-17 20:39:23] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:39:35] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:39:36] [INFO]  * Restarting with stat
+[2025-07-17 20:39:42] [WARNING]  * Debugger is active!
+[2025-07-17 20:39:42] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:40:14] [INFO] 127.0.0.1 - - [17/Jul/2025 20:40:14] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:40:14] [INFO] 127.0.0.1 - - [17/Jul/2025 20:40:14] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:40:14] [INFO] 127.0.0.1 - - [17/Jul/2025 20:40:14] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:40:14] [INFO] 127.0.0.1 - - [17/Jul/2025 20:40:14] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=my5beRb6Oe8Iavmz1Sc3 HTTP/1.1" 200 -
+[2025-07-17 20:41:40] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-17 20:41:40] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-17 20:41:40] [INFO]  * Restarting with stat
+[2025-07-17 20:41:51] [WARNING]  * Debugger is active!
+[2025-07-17 20:41:51] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:42:14] [INFO] 127.0.0.1 - - [17/Jul/2025 20:42:14] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:42:15] [INFO] 127.0.0.1 - - [17/Jul/2025 20:42:15] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:42:15] [INFO] 127.0.0.1 - - [17/Jul/2025 20:42:15] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:42:15] [INFO] 127.0.0.1 - - [17/Jul/2025 20:42:15] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:42:15] [INFO] 127.0.0.1 - - [17/Jul/2025 20:42:15] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=pwSWFQmEgUCG6EeuHl6t HTTP/1.1" 200 -
+[2025-07-17 20:42:42] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-17 20:42:42] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-17 20:42:42] [INFO]  * Restarting with stat
+[2025-07-17 20:42:52] [WARNING]  * Debugger is active!
+[2025-07-17 20:42:52] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:44:13] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:44:53] [INFO] 127.0.0.1 - - [17/Jul/2025 20:44:53] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:44:56] [INFO]  * Restarting with stat
+[2025-07-17 20:45:09] [WARNING]  * Debugger is active!
+[2025-07-17 20:45:09] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:45:10] [INFO] 127.0.0.1 - - [17/Jul/2025 20:45:10] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:45:10] [INFO] 127.0.0.1 - - [17/Jul/2025 20:45:10] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:45:10] [INFO] 127.0.0.1 - - [17/Jul/2025 20:45:10] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=xFNw4HexDLrCtOA7MZ6u HTTP/1.1" 200 -
+[2025-07-17 20:45:44] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 20:45:54] [INFO]  * Restarting with stat
+[2025-07-17 20:46:03] [WARNING]  * Debugger is active!
+[2025-07-17 20:46:03] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 20:47:10] [INFO] 127.0.0.1 - - [17/Jul/2025 20:47:10] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 20:47:10] [INFO] 127.0.0.1 - - [17/Jul/2025 20:47:10] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 20:47:10] [INFO] 127.0.0.1 - - [17/Jul/2025 20:47:10] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 20:47:10] [INFO] 127.0.0.1 - - [17/Jul/2025 20:47:10] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=RD9IzQHzjwhkH5YWn5EF HTTP/1.1" 200 -
+[2025-07-17 21:02:27] [INFO] 127.0.0.1 - - [17/Jul/2025 21:02:27] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 21:02:27] [INFO] 127.0.0.1 - - [17/Jul/2025 21:02:27] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 21:02:27] [INFO] 127.0.0.1 - - [17/Jul/2025 21:02:27] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 21:02:27] [INFO] 127.0.0.1 - - [17/Jul/2025 21:02:27] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png&s=RD9IzQHzjwhkH5YWn5EF HTTP/1.1[0m" 304 -
+[2025-07-17 21:08:14] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-17 21:08:14] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-17 21:08:14] [INFO]  * Restarting with stat
+[2025-07-17 21:08:19] [WARNING]  * Debugger is active!
+[2025-07-17 21:08:19] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 21:08:28] [INFO] 127.0.0.1 - - [17/Jul/2025 21:08:28] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 21:08:28] [INFO] 127.0.0.1 - - [17/Jul/2025 21:08:28] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 21:08:28] [INFO] 127.0.0.1 - - [17/Jul/2025 21:08:28] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 21:08:28] [INFO] 127.0.0.1 - - [17/Jul/2025 21:08:28] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=wpELtp42lv1SiHs6jTQC HTTP/1.1" 200 -
+[2025-07-17 21:09:07] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 21:09:10] [INFO]  * Restarting with stat
+[2025-07-17 21:09:18] [WARNING]  * Debugger is active!
+[2025-07-17 21:09:18] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 21:09:24] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 21:09:26] [INFO]  * Restarting with stat
+[2025-07-17 21:19:11] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-17 21:19:11] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-17 21:19:11] [INFO]  * Restarting with stat
+[2025-07-17 21:19:18] [WARNING]  * Debugger is active!
+[2025-07-17 21:19:18] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 21:19:26] [INFO] 127.0.0.1 - - [17/Jul/2025 21:19:26] "GET / HTTP/1.1" 200 -
+[2025-07-17 21:19:26] [INFO] 127.0.0.1 - - [17/Jul/2025 21:19:26] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 21:19:40] [INFO] 127.0.0.1 - - [17/Jul/2025 21:19:40] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 21:19:40] [INFO] 127.0.0.1 - - [17/Jul/2025 21:19:40] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 21:19:40] [INFO] 127.0.0.1 - - [17/Jul/2025 21:19:40] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 21:19:40] [INFO] 127.0.0.1 - - [17/Jul/2025 21:19:40] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=G5XB4fv1fuEPn6IsgEsF HTTP/1.1" 200 -
+[2025-07-17 21:19:50] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 21:19:53] [INFO]  * Restarting with stat
+[2025-07-17 21:20:01] [WARNING]  * Debugger is active!
+[2025-07-17 21:20:01] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 21:20:25] [INFO] 127.0.0.1 - - [17/Jul/2025 21:20:25] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 21:20:25] [INFO] 127.0.0.1 - - [17/Jul/2025 21:20:25] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 21:20:25] [INFO] 127.0.0.1 - - [17/Jul/2025 21:20:25] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 21:20:25] [INFO] 127.0.0.1 - - [17/Jul/2025 21:20:25] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=EOPLEhwMJNcOO8907x2w HTTP/1.1" 200 -
+[2025-07-17 21:21:00] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 21:21:03] [INFO]  * Restarting with stat
+[2025-07-17 21:21:11] [WARNING]  * Debugger is active!
+[2025-07-17 21:21:11] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 21:21:15] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 21:21:16] [INFO]  * Restarting with stat
+[2025-07-17 21:21:23] [WARNING]  * Debugger is active!
+[2025-07-17 21:21:23] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 21:21:23] [INFO] 127.0.0.1 - - [17/Jul/2025 21:21:23] "GET / HTTP/1.1" 200 -
+[2025-07-17 21:21:23] [INFO] 127.0.0.1 - - [17/Jul/2025 21:21:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-17 21:21:41] [INFO] 127.0.0.1 - - [17/Jul/2025 21:21:41] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-17 21:21:41] [INFO] 127.0.0.1 - - [17/Jul/2025 21:21:41] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-17 21:21:41] [INFO] 127.0.0.1 - - [17/Jul/2025 21:21:41] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-17 21:21:41] [INFO] 127.0.0.1 - - [17/Jul/2025 21:21:41] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=7AeN9AF2HJfBx2h9OWMI HTTP/1.1" 200 -
+[2025-07-17 21:22:07] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 21:22:11] [INFO]  * Restarting with stat
+[2025-07-17 21:22:20] [WARNING]  * Debugger is active!
+[2025-07-17 21:22:20] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-17 21:22:23] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-17 21:22:25] [INFO]  * Restarting with stat
+[2025-07-17 21:22:33] [WARNING]  * Debugger is active!
+[2025-07-17 21:22:33] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 20:40:01] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 20:40:01] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 20:40:01] [INFO]  * Restarting with stat
+[2025-07-18 20:40:07] [WARNING]  * Debugger is active!
+[2025-07-18 20:40:07] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 20:40:27] [INFO] 127.0.0.1 - - [18/Jul/2025 20:40:27] "GET / HTTP/1.1" 200 -
+[2025-07-18 20:40:27] [INFO] 127.0.0.1 - - [18/Jul/2025 20:40:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 20:40:27] [INFO] 127.0.0.1 - - [18/Jul/2025 20:40:27] "[33mGET /apple-touch-icon-precomposed.png HTTP/1.1[0m" 404 -
+[2025-07-18 20:40:27] [INFO] 127.0.0.1 - - [18/Jul/2025 20:40:27] "[33mGET /apple-touch-icon.png HTTP/1.1[0m" 404 -
+[2025-07-18 20:40:41] [INFO] 127.0.0.1 - - [18/Jul/2025 20:40:41] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 20:40:41] [INFO] 127.0.0.1 - - [18/Jul/2025 20:40:41] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-18 20:40:41] [INFO] 127.0.0.1 - - [18/Jul/2025 20:40:41] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-18 20:40:41] [INFO] 127.0.0.1 - - [18/Jul/2025 20:40:41] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=dYLhxYjfcsCcte0kE00B HTTP/1.1" 200 -
+[2025-07-18 20:41:23] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 20:41:23] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 20:41:23] [INFO]  * Restarting with stat
+[2025-07-18 20:41:33] [WARNING]  * Debugger is active!
+[2025-07-18 20:41:33] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 20:45:38] [INFO] 127.0.0.1 - - [18/Jul/2025 20:45:38] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 20:45:38] [INFO] 127.0.0.1 - - [18/Jul/2025 20:45:38] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-18 20:45:38] [INFO] 127.0.0.1 - - [18/Jul/2025 20:45:38] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-18 20:45:38] [INFO] 127.0.0.1 - - [18/Jul/2025 20:45:38] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=fhMmo8RtWnoCl22pycpy HTTP/1.1" 200 -
+[2025-07-18 20:48:35] [INFO] 127.0.0.1 - - [18/Jul/2025 20:48:35] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 20:48:35] [INFO] 127.0.0.1 - - [18/Jul/2025 20:48:35] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-18 20:48:35] [INFO] 127.0.0.1 - - [18/Jul/2025 20:48:35] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-18 20:48:35] [INFO] 127.0.0.1 - - [18/Jul/2025 20:48:35] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png&s=fhMmo8RtWnoCl22pycpy HTTP/1.1[0m" 304 -
+[2025-07-18 20:49:17] [INFO] 127.0.0.1 - - [18/Jul/2025 20:49:17] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 20:49:17] [INFO] 127.0.0.1 - - [18/Jul/2025 20:49:17] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-18 20:49:17] [INFO] 127.0.0.1 - - [18/Jul/2025 20:49:17] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-18 20:49:17] [INFO] 127.0.0.1 - - [18/Jul/2025 20:49:17] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png&s=fhMmo8RtWnoCl22pycpy HTTP/1.1[0m" 304 -
+[2025-07-18 21:17:09] [INFO] 127.0.0.1 - - [18/Jul/2025 21:17:09] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:17:09] [INFO] 127.0.0.1 - - [18/Jul/2025 21:17:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 21:17:09] [INFO] 127.0.0.1 - - [18/Jul/2025 21:17:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 21:17:43] [INFO] 127.0.0.1 - - [18/Jul/2025 21:17:43] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 21:18:35] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:18:35] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:18:35] [INFO]  * Restarting with stat
+[2025-07-18 21:18:48] [WARNING]  * Debugger is active!
+[2025-07-18 21:18:49] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 21:18:49] [INFO] 127.0.0.1 - - [18/Jul/2025 21:18:49] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:18:49] [INFO] 127.0.0.1 - - [18/Jul/2025 21:18:49] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 21:19:45] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 21:21:36] [INFO] 127.0.0.1 - - [18/Jul/2025 21:21:36] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 21:21:39] [INFO]  * Restarting with stat
+[2025-07-18 21:22:03] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:22:03] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:22:06] [INFO] 127.0.0.1 - - [18/Jul/2025 21:22:06] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:22:06] [INFO] 127.0.0.1 - - [18/Jul/2025 21:22:06] "GET /static/style.css HTTP/1.1" 200 -
+[2025-07-18 21:22:20] [ERROR] Exception on / [POST]
+Traceback (most recent call last):
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 129, in index
+    mock_data = get_results(query)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 105, in get_results
+    data = list(executor.map(extract_metadata, results_urls[:2]))
+  File "/usr/local/Caskroom/miniconda/base/lib/python3.10/concurrent/futures/_base.py", line 621, in result_iterator
+    yield _result_or_cancel(fs.pop())
+  File "/usr/local/Caskroom/miniconda/base/lib/python3.10/concurrent/futures/_base.py", line 319, in _result_or_cancel
+    return fut.result(timeout)
+  File "/usr/local/Caskroom/miniconda/base/lib/python3.10/concurrent/futures/_base.py", line 458, in result
+    return self.__get_result()
+  File "/usr/local/Caskroom/miniconda/base/lib/python3.10/concurrent/futures/_base.py", line 403, in __get_result
+    raise self._exception
+  File "/usr/local/Caskroom/miniconda/base/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 88, in extract_metadata
+    sentiment_analy = document_sentiment_analysis_binary(text, sentiment_pipeline, seed=0, random_aprox=True)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 30, in document_sentiment_analysis_binary
+    analysis = pipeline(data)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/text_classification.py", line 163, in __call__
+    result = super().__call__(*inputs, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/base.py", line 1445, in __call__
+    outputs = list(final_iterator)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/pt_utils.py", line 124, in __next__
+    item = next(self.iterator)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/pt_utils.py", line 125, in __next__
+    processed = self.infer(item, **self.params)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/base.py", line 1371, in forward
+    model_outputs = self._forward(model_inputs, **forward_params)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/text_classification.py", line 194, in _forward
+    return self.model(**model_inputs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 917, in forward
+    distilbert_output = self.distilbert(
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 723, in forward
+    embeddings = self.embeddings(input_ids, inputs_embeds)  # (bs, seq_length, dim)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 126, in forward
+    embeddings = input_embeds + position_embeddings  # (bs, max_seq_length, dim)
+RuntimeError: The size of tensor a (691) must match the size of tensor b (512) at non-singleton dimension 1
+[2025-07-18 21:22:20] [INFO] 127.0.0.1 - - [18/Jul/2025 21:22:20] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 21:22:54] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:22:54] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:23:35] [INFO] 127.0.0.1 - - [18/Jul/2025 21:23:35] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:23:35] [INFO] 127.0.0.1 - - [18/Jul/2025 21:23:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 21:23:35] [INFO] 127.0.0.1 - - [18/Jul/2025 21:23:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 21:28:00] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:28:00] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:28:02] [INFO] 127.0.0.1 - - [18/Jul/2025 21:28:02] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:28:02] [INFO] 127.0.0.1 - - [18/Jul/2025 21:28:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 21:28:04] [INFO] 127.0.0.1 - - [18/Jul/2025 21:28:04] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:28:04] [INFO] 127.0.0.1 - - [18/Jul/2025 21:28:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 21:39:25] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:39:25] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:39:30] [INFO] 127.0.0.1 - - [18/Jul/2025 21:39:30] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:39:30] [INFO] 127.0.0.1 - - [18/Jul/2025 21:39:30] "GET /static/style.css HTTP/1.1" 200 -
+[2025-07-18 21:39:44] [ERROR] Exception on / [POST]
+Traceback (most recent call last):
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 128, in index
+    mock_data = get_results(query)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 103, in get_results
+    data = [get_document_data(url, sentiment_pipeline) for url in results_urls[:2]]  # Limit to first 2 URLs for demo
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 103, in <listcomp>
+    data = [get_document_data(url, sentiment_pipeline) for url in results_urls[:2]]  # Limit to first 2 URLs for demo
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 86, in get_document_data
+    sentiment_analy = document_sentiment_analysis_binary(text, pipeline, seed=0, random_aprox=True)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/./interface.py", line 30, in document_sentiment_analysis_binary
+    analysis = pipeline(data)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/text_classification.py", line 163, in __call__
+    result = super().__call__(*inputs, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/base.py", line 1445, in __call__
+    outputs = list(final_iterator)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/pt_utils.py", line 124, in __next__
+    item = next(self.iterator)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/pt_utils.py", line 125, in __next__
+    processed = self.infer(item, **self.params)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/base.py", line 1371, in forward
+    model_outputs = self._forward(model_inputs, **forward_params)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/text_classification.py", line 194, in _forward
+    return self.model(**model_inputs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 917, in forward
+    distilbert_output = self.distilbert(
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 723, in forward
+    embeddings = self.embeddings(input_ids, inputs_embeds)  # (bs, seq_length, dim)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 126, in forward
+    embeddings = input_embeds + position_embeddings  # (bs, max_seq_length, dim)
+RuntimeError: The size of tensor a (691) must match the size of tensor b (512) at non-singleton dimension 1
+[2025-07-18 21:39:44] [INFO] 127.0.0.1 - - [18/Jul/2025 21:39:44] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 21:40:23] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:40:23] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:48:59] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:48:59] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:53:41] [INFO] 127.0.0.1 - - [18/Jul/2025 21:53:41] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:53:41] [INFO] 127.0.0.1 - - [18/Jul/2025 21:53:41] "GET /static/style.css HTTP/1.1" 200 -
+[2025-07-18 21:57:24] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:57:24] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:57:27] [INFO] 127.0.0.1 - - [18/Jul/2025 21:57:27] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:57:27] [INFO] 127.0.0.1 - - [18/Jul/2025 21:57:27] "GET /static/style.css HTTP/1.1" 200 -
+[2025-07-18 21:59:06] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 21:59:06] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 21:59:09] [INFO] 127.0.0.1 - - [18/Jul/2025 21:59:09] "GET / HTTP/1.1" 200 -
+[2025-07-18 21:59:09] [INFO] 127.0.0.1 - - [18/Jul/2025 21:59:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:00:11] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:00:11] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:01:00] [INFO] 127.0.0.1 - - [18/Jul/2025 22:01:00] "GET / HTTP/1.1" 200 -
+[2025-07-18 22:01:00] [INFO] 127.0.0.1 - - [18/Jul/2025 22:01:00] "GET /static/style.css HTTP/1.1" 200 -
+[2025-07-18 22:02:38] [ERROR] Exception on / [POST]
+Traceback (most recent call last):
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 132, in index
+    mock_data = get_results(query)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 107, in get_results
+    data = [get_document_data(url, sentiment_pipeline) for url in results_urls[:2]]  # Limit to first 2 URLs for demo
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 107, in <listcomp>
+    data = [get_document_data(url, sentiment_pipeline) for url in results_urls[:2]]  # Limit to first 2 URLs for demo
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 90, in get_document_data
+    sentiment_analy = document_sentiment_analysis_binary(text, pipeline, seed=0, random_aprox=True)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 30, in document_sentiment_analysis_binary
+    analysis = pipeline(data)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/text_classification.py", line 163, in __call__
+    result = super().__call__(*inputs, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/base.py", line 1445, in __call__
+    outputs = list(final_iterator)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/pt_utils.py", line 124, in __next__
+    item = next(self.iterator)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/pt_utils.py", line 125, in __next__
+    processed = self.infer(item, **self.params)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/base.py", line 1371, in forward
+    model_outputs = self._forward(model_inputs, **forward_params)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/pipelines/text_classification.py", line 194, in _forward
+    return self.model(**model_inputs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 917, in forward
+    distilbert_output = self.distilbert(
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 723, in forward
+    embeddings = self.embeddings(input_ids, inputs_embeds)  # (bs, seq_length, dim)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/transformers/models/distilbert/modeling_distilbert.py", line 126, in forward
+    embeddings = input_embeds + position_embeddings  # (bs, max_seq_length, dim)
+RuntimeError: The size of tensor a (691) must match the size of tensor b (512) at non-singleton dimension 1
+[2025-07-18 22:02:38] [INFO] 127.0.0.1 - - [18/Jul/2025 22:02:38] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 22:03:06] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:03:06] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:03:24] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:03:24] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:03:50] [INFO] 127.0.0.1 - - [18/Jul/2025 22:03:50] "GET / HTTP/1.1" 200 -
+[2025-07-18 22:03:50] [INFO] 127.0.0.1 - - [18/Jul/2025 22:03:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:03:50] [INFO] 127.0.0.1 - - [18/Jul/2025 22:03:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:03:58] [ERROR] Exception on / [POST]
+Traceback (most recent call last):
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 132, in index
+    mock_data = get_results(query)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 102, in get_results
+    results_urls = search(query)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/main.py", line 56, in search
+    query = preprocess_query(query_text)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/main.py", line 35, in preprocess_query
+    filtered_tokens = [
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/main.py", line 36, in <listcomp>
+    lemmatizer.lemmatize(token) for token in tokens
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/nltk/stem/wordnet.py", line 85, in lemmatize
+    lemmas = self._morphy(word, pos)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/nltk/stem/wordnet.py", line 41, in _morphy
+    return wn._morphy(form, pos, check_exceptions)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/nltk/corpus/util.py", line 120, in __getattr__
+    self.__load()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/nltk/corpus/util.py", line 95, in __load
+    args, kwargs = self.__args, self.__kwargs
+AttributeError: 'WordNetCorpusReader' object has no attribute '_LazyCorpusLoader__args'
+[2025-07-18 22:03:58] [INFO] 127.0.0.1 - - [18/Jul/2025 22:03:58] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 22:04:02] [ERROR] Exception on / [POST]
+Traceback (most recent call last):
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 132, in index
+    mock_data = get_results(query)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py", line 102, in get_results
+    results_urls = search(query)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/main.py", line 56, in search
+    query = preprocess_query(query_text)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/main.py", line 35, in preprocess_query
+    filtered_tokens = [
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/main.py", line 36, in <listcomp>
+    lemmatizer.lemmatize(token) for token in tokens
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/nltk/stem/wordnet.py", line 85, in lemmatize
+    lemmas = self._morphy(word, pos)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/nltk/stem/wordnet.py", line 41, in _morphy
+    return wn._morphy(form, pos, check_exceptions)
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/nltk/corpus/util.py", line 120, in __getattr__
+    self.__load()
+  File "/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/.venv/lib/python3.10/site-packages/nltk/corpus/util.py", line 95, in __load
+    args, kwargs = self.__args, self.__kwargs
+AttributeError: 'WordNetCorpusReader' object has no attribute '_LazyCorpusLoader__args'
+[2025-07-18 22:04:02] [INFO] 127.0.0.1 - - [18/Jul/2025 22:04:02] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 22:05:48] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:05:48] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:05:53] [INFO] 127.0.0.1 - - [18/Jul/2025 22:05:53] "GET / HTTP/1.1" 200 -
+[2025-07-18 22:05:54] [INFO] 127.0.0.1 - - [18/Jul/2025 22:05:54] "GET /static/style.css HTTP/1.1" 200 -
+[2025-07-18 22:06:12] [INFO] 127.0.0.1 - - [18/Jul/2025 22:06:12] "POST / HTTP/1.1" 200 -
+[2025-07-18 22:06:12] [INFO] 127.0.0.1 - - [18/Jul/2025 22:06:12] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:07:07] [INFO] 127.0.0.1 - - [18/Jul/2025 22:07:07] "POST / HTTP/1.1" 200 -
+[2025-07-18 22:07:07] [INFO] 127.0.0.1 - - [18/Jul/2025 22:07:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:09:15] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:09:15] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:27:44] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:27:44] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:34:44] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:34:44] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:34:52] [INFO] 127.0.0.1 - - [18/Jul/2025 22:34:52] "GET / HTTP/1.1" 200 -
+[2025-07-18 22:34:52] [INFO] 127.0.0.1 - - [18/Jul/2025 22:34:52] "GET /static/style.css HTTP/1.1" 200 -
+[2025-07-18 22:35:07] [INFO] 127.0.0.1 - - [18/Jul/2025 22:35:07] "POST / HTTP/1.1" 200 -
+[2025-07-18 22:35:07] [INFO] 127.0.0.1 - - [18/Jul/2025 22:35:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:37:47] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:37:47] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:37:47] [INFO]  * Restarting with stat
+[2025-07-18 22:37:55] [WARNING]  * Debugger is active!
+[2025-07-18 22:37:55] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:38:06] [INFO] 127.0.0.1 - - [18/Jul/2025 22:38:06] "POST / HTTP/1.1" 200 -
+[2025-07-18 22:38:06] [INFO] 127.0.0.1 - - [18/Jul/2025 22:38:06] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:38:22] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 22:38:24] [INFO]  * Restarting with stat
+[2025-07-18 22:38:33] [WARNING]  * Debugger is active!
+[2025-07-18 22:38:33] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:40:24] [INFO] 127.0.0.1 - - [18/Jul/2025 22:40:24] "POST / HTTP/1.1" 200 -
+[2025-07-18 22:40:24] [INFO] 127.0.0.1 - - [18/Jul/2025 22:40:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:41:46] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 22:41:47] [INFO]  * Restarting with stat
+[2025-07-18 22:41:55] [WARNING]  * Debugger is active!
+[2025-07-18 22:41:56] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:41:57] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 22:41:58] [INFO]  * Restarting with stat
+[2025-07-18 22:47:42] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-18 22:47:42] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-18 22:47:42] [INFO]  * Restarting with stat
+[2025-07-18 22:47:51] [WARNING]  * Debugger is active!
+[2025-07-18 22:47:51] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:47:51] [INFO] 127.0.0.1 - - [18/Jul/2025 22:47:51] "GET / HTTP/1.1" 200 -
+[2025-07-18 22:47:51] [INFO] 127.0.0.1 - - [18/Jul/2025 22:47:51] "GET /static/style.css HTTP/1.1" 200 -
+[2025-07-18 22:48:11] [INFO] 127.0.0.1 - - [18/Jul/2025 22:48:11] "POST / HTTP/1.1" 200 -
+[2025-07-18 22:48:11] [INFO] 127.0.0.1 - - [18/Jul/2025 22:48:11] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 22:48:39] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:48:41] [INFO]  * Restarting with stat
+[2025-07-18 22:48:50] [WARNING]  * Debugger is active!
+[2025-07-18 22:48:50] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:54:06] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:54:07] [INFO]  * Restarting with stat
+[2025-07-18 22:54:16] [WARNING]  * Debugger is active!
+[2025-07-18 22:54:16] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:54:18] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:54:19] [INFO]  * Restarting with stat
+[2025-07-18 22:54:25] [WARNING]  * Debugger is active!
+[2025-07-18 22:54:25] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:55:15] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:55:17] [INFO]  * Restarting with stat
+[2025-07-18 22:55:25] [WARNING]  * Debugger is active!
+[2025-07-18 22:55:25] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:55:35] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:55:36] [INFO]  * Restarting with stat
+[2025-07-18 22:55:42] [WARNING]  * Debugger is active!
+[2025-07-18 22:55:42] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:55:47] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:55:49] [INFO]  * Restarting with stat
+[2025-07-18 22:55:55] [WARNING]  * Debugger is active!
+[2025-07-18 22:55:55] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:55:57] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:55:59] [INFO]  * Restarting with stat
+[2025-07-18 22:56:06] [WARNING]  * Debugger is active!
+[2025-07-18 22:56:06] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:57:50] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:57:51] [INFO]  * Restarting with stat
+[2025-07-18 22:57:59] [WARNING]  * Debugger is active!
+[2025-07-18 22:57:59] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:58:04] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:58:05] [INFO]  * Restarting with stat
+[2025-07-18 22:58:12] [WARNING]  * Debugger is active!
+[2025-07-18 22:58:12] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:58:27] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:58:28] [INFO]  * Restarting with stat
+[2025-07-18 22:58:36] [WARNING]  * Debugger is active!
+[2025-07-18 22:58:36] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:59:30] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:59:31] [INFO]  * Restarting with stat
+[2025-07-18 22:59:37] [WARNING]  * Debugger is active!
+[2025-07-18 22:59:37] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 22:59:46] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 22:59:48] [INFO]  * Restarting with stat
+[2025-07-18 22:59:54] [WARNING]  * Debugger is active!
+[2025-07-18 22:59:54] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:00:31] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/test.py', reloading
+[2025-07-18 23:00:32] [INFO]  * Restarting with stat
+[2025-07-18 23:00:39] [WARNING]  * Debugger is active!
+[2025-07-18 23:00:39] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:00:57] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:00:59] [INFO]  * Restarting with stat
+[2025-07-18 23:01:06] [WARNING]  * Debugger is active!
+[2025-07-18 23:01:06] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:01:29] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:01:31] [INFO]  * Restarting with stat
+[2025-07-18 23:01:37] [WARNING]  * Debugger is active!
+[2025-07-18 23:01:37] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:01:55] [INFO] 127.0.0.1 - - [18/Jul/2025 23:01:55] "POST / HTTP/1.1" 200 -
+[2025-07-18 23:01:55] [INFO] 127.0.0.1 - - [18/Jul/2025 23:01:55] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 23:03:03] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:03:08] [INFO]  * Restarting with stat
+[2025-07-18 23:03:31] [WARNING]  * Debugger is active!
+[2025-07-18 23:03:31] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:04:09] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:04:11] [INFO]  * Restarting with stat
+[2025-07-18 23:04:19] [WARNING]  * Debugger is active!
+[2025-07-18 23:04:19] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:04:19] [INFO] 127.0.0.1 - - [18/Jul/2025 23:04:19] "GET / HTTP/1.1" 200 -
+[2025-07-18 23:04:20] [INFO] 127.0.0.1 - - [18/Jul/2025 23:04:20] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 23:04:33] [INFO] 127.0.0.1 - - [18/Jul/2025 23:04:33] "[35m[1mPOST / HTTP/1.1[0m" 500 -
+[2025-07-18 23:04:33] [INFO] 127.0.0.1 - - [18/Jul/2025 23:04:33] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[2025-07-18 23:04:33] [INFO] 127.0.0.1 - - [18/Jul/2025 23:04:33] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[2025-07-18 23:04:33] [INFO] 127.0.0.1 - - [18/Jul/2025 23:04:33] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=I4ohno2vSugQba0MtksH HTTP/1.1" 200 -
+[2025-07-18 23:04:57] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:04:59] [INFO]  * Restarting with stat
+[2025-07-18 23:05:09] [WARNING]  * Debugger is active!
+[2025-07-18 23:05:09] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:06:52] [INFO] 127.0.0.1 - - [18/Jul/2025 23:06:52] "POST / HTTP/1.1" 200 -
+[2025-07-18 23:07:41] [INFO] 127.0.0.1 - - [18/Jul/2025 23:07:41] "POST / HTTP/1.1" 200 -
+[2025-07-18 23:07:41] [INFO] 127.0.0.1 - - [18/Jul/2025 23:07:41] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 23:20:23] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:20:25] [INFO]  * Restarting with stat
+[2025-07-18 23:20:34] [WARNING]  * Debugger is active!
+[2025-07-18 23:20:34] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:20:38] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:20:40] [INFO]  * Restarting with stat
+[2025-07-18 23:20:46] [WARNING]  * Debugger is active!
+[2025-07-18 23:20:46] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:21:42] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:21:44] [INFO]  * Restarting with stat
+[2025-07-18 23:21:50] [WARNING]  * Debugger is active!
+[2025-07-18 23:21:50] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:21:56] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:21:58] [INFO]  * Restarting with stat
+[2025-07-18 23:22:07] [WARNING]  * Debugger is active!
+[2025-07-18 23:22:07] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:22:19] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:22:20] [INFO]  * Restarting with stat
+[2025-07-18 23:22:28] [WARNING]  * Debugger is active!
+[2025-07-18 23:22:28] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:22:32] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:22:33] [INFO]  * Restarting with stat
+[2025-07-18 23:22:39] [WARNING]  * Debugger is active!
+[2025-07-18 23:22:39] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:23:28] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:23:30] [INFO]  * Restarting with stat
+[2025-07-18 23:23:39] [WARNING]  * Debugger is active!
+[2025-07-18 23:23:39] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:27:39] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:27:40] [INFO]  * Restarting with stat
+[2025-07-18 23:27:49] [WARNING]  * Debugger is active!
+[2025-07-18 23:27:49] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:28:04] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:28:06] [INFO]  * Restarting with stat
+[2025-07-18 23:28:13] [WARNING]  * Debugger is active!
+[2025-07-18 23:28:13] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:28:47] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:28:48] [INFO]  * Restarting with stat
+[2025-07-18 23:28:54] [WARNING]  * Debugger is active!
+[2025-07-18 23:28:54] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:29:01] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:29:02] [INFO]  * Restarting with stat
+[2025-07-18 23:29:08] [WARNING]  * Debugger is active!
+[2025-07-18 23:29:08] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:30:25] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:30:27] [INFO]  * Restarting with stat
+[2025-07-18 23:30:32] [WARNING]  * Debugger is active!
+[2025-07-18 23:30:32] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:30:40] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:30:41] [INFO]  * Restarting with stat
+[2025-07-18 23:30:47] [WARNING]  * Debugger is active!
+[2025-07-18 23:30:47] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:30:55] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:30:56] [INFO]  * Restarting with stat
+[2025-07-18 23:31:02] [WARNING]  * Debugger is active!
+[2025-07-18 23:31:02] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:31:30] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:31:31] [INFO]  * Restarting with stat
+[2025-07-18 23:31:40] [WARNING]  * Debugger is active!
+[2025-07-18 23:31:40] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:31:50] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:31:52] [INFO]  * Restarting with stat
+[2025-07-18 23:31:59] [WARNING]  * Debugger is active!
+[2025-07-18 23:31:59] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:32:08] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:32:09] [INFO]  * Restarting with stat
+[2025-07-18 23:32:16] [WARNING]  * Debugger is active!
+[2025-07-18 23:32:16] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:32:42] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:32:44] [INFO]  * Restarting with stat
+[2025-07-18 23:32:50] [WARNING]  * Debugger is active!
+[2025-07-18 23:32:50] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:34:09] [INFO] 127.0.0.1 - - [18/Jul/2025 23:34:09] "POST / HTTP/1.1" 200 -
+[2025-07-18 23:34:09] [INFO] 127.0.0.1 - - [18/Jul/2025 23:34:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 23:35:43] [INFO] 127.0.0.1 - - [18/Jul/2025 23:35:43] "POST / HTTP/1.1" 200 -
+[2025-07-18 23:35:43] [INFO] 127.0.0.1 - - [18/Jul/2025 23:35:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-18 23:37:13] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:37:15] [INFO]  * Restarting with stat
+[2025-07-18 23:37:25] [WARNING]  * Debugger is active!
+[2025-07-18 23:37:25] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:38:28] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:38:30] [INFO]  * Restarting with stat
+[2025-07-18 23:38:38] [WARNING]  * Debugger is active!
+[2025-07-18 23:38:38] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:38:57] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:38:58] [INFO]  * Restarting with stat
+[2025-07-18 23:39:05] [WARNING]  * Debugger is active!
+[2025-07-18 23:39:05] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:39:06] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:39:08] [INFO]  * Restarting with stat
+[2025-07-18 23:39:14] [WARNING]  * Debugger is active!
+[2025-07-18 23:39:14] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-18 23:40:27] [INFO]  * Detected change in '/Users/danielbischoff/Documents/MasterInformatik/MSE/Best-search-engine-in-the-world/interface.py', reloading
+[2025-07-18 23:40:29] [INFO]  * Restarting with stat
+[2025-07-18 23:40:37] [WARNING]  * Debugger is active!
+[2025-07-18 23:40:37] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-19 17:04:16] [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2025-07-19 17:04:16] [INFO] [33mPress CTRL+C to quit[0m
+[2025-07-19 17:04:16] [INFO]  * Restarting with stat
+[2025-07-19 17:04:26] [WARNING]  * Debugger is active!
+[2025-07-19 17:04:26] [INFO]  * Debugger PIN: 646-702-125
+[2025-07-19 17:04:26] [INFO] 127.0.0.1 - - [19/Jul/2025 17:04:26] "GET / HTTP/1.1" 200 -
+[2025-07-19 17:04:26] [INFO] 127.0.0.1 - - [19/Jul/2025 17:04:26] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+[2025-07-19 17:05:33] [INFO] 127.0.0.1 - - [19/Jul/2025 17:05:33] "POST / HTTP/1.1" 200 -
+[2025-07-19 17:05:33] [INFO] 127.0.0.1 - - [19/Jul/2025 17:05:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
