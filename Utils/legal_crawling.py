@@ -44,10 +44,14 @@ class OfflineCrawler:
 
         self.path_to_crawled_data = 'data/crawled_data.pkl'
         self.path_to_simhashes = 'data/simhashes.pkl'
-        
+        self.path_to_frontier = 'data/frontier.pkl'
+        self.path_to_visited_urls_in_queue = 'data/visited_urls_in_queue.pkl'
+
         self.crawled_data = self._load(self.path_to_crawled_data)
         self.seen_simhashes = self._load(self.path_to_simhashes)
-        
+        self.frontier = self._load(self.path_to_frontier) # NEW: Load persistent frontier
+        self.visited_urls_in_queue = self._load(self.path_to_visited_urls_in_queue) # NEW: Load persistent visited URLs
+
         signal.signal(signal.SIGINT, self._handle_interrupt) 
         
         # Priority queue for frontier: (priority, url, depth)
@@ -58,17 +62,14 @@ class OfflineCrawler:
         # For mapping URL to doc_id (helpful for debugging and future relevance)
         self.url_to_doc_id = {url_info['url']: doc_id for doc_id, url_info in self.crawled_data.items() if 'url' in url_info}
 
-        # NEW: Robots.txt Parsers Cache and User-Agent
         # Stores RobotFileParser objects, keyed by domain (netloc)
         self.robot_parsers = {}
         # Stores the effective crawl delay for each domain
         self.domain_delays = {}
         # User-Agent string for your crawler. Be descriptive and include a contact URL.
-        # This is what websites will see in their logs and what robots.txt rules apply to.
-        # IMPORTANT: REPLACE with your actual contact URL!
         self.user_agent = "TübingenSearchBot_UniProject/4.20 (https://alma.uni-tuebingen.de/alma/pages/startFlow.xhtml?_flowId=detailView-flow&unitId=78284&periodId=228&navigationPosition=studiesOffered,searchCourses)" 
             
-            # NEW: Tiered keywords for weighted priority
+            #Tiered keywords for weighted priority
         self.very_relevant_keywords = {
             "tuebingen", "tubingen", "eberhard karls universität", "hohentuebingen", "hohentübingen",
             "stocherkahnrennen", "chocolart", "university", "universität", "neckar", "altstadt", "baden-wuerttemberg", "baden-württemberg"
@@ -96,16 +97,47 @@ class OfflineCrawler:
     def run(self):
         self.last_fetch_time = {} 
 
+        # NEW: Integrate new seeds into the existing frontier intelligently
+        seeds_already_known = 0
+        seeds_added_count = 0
+        total_seeds_to_process = len(self.seeds)
+
+        #logging.info(f"Initiating seed processing. Total seeds: {total_seeds_to_process}.")
+
         for url in self.seeds:
-            if url not in self.visited_urls_in_queue:
-                rp = self._get_robot_parser(url)
-                if rp.can_fetch(self.user_agent, url):
-                    priority = self._calculate_priority(url, "", [], 0)
-                    heapq.heappush(self.frontier, (priority, url, 0))
-                    self.visited_urls_in_queue.add(url)
-                    logging.info(f"Seed added to frontier: {url}") # New: confirm seed added
-                else:
-                    logging.info(f"Skipping seed URL {url} due to robots.txt rules.")
+            # MODIFIED: Normalize URL before checks for consistency
+            normalized_url, _ = urldefrag(urljoin(url, url))
+            parsed_url = urlparse(normalized_url)
+
+            # Skip malformed URLs early
+            if not parsed_url.scheme or not parsed_url.netloc:
+                logging.warning(f"[SEED_SKIP] Malformed seed URL: '{url}'. Skipping.")
+                seeds_already_known += 1
+                continue
+
+            # Check if already processed (crawled and indexed)
+            if normalized_url in self.url_to_doc_id:
+                logging.info(f"[SEED_SKIP] Seed '{normalized_url}' already processed (Doc ID: {self.url_to_doc_id[normalized_url]}).")
+                seeds_already_known += 1
+                continue
+
+            # Check if already in frontier or visited_urls_in_queue
+            if normalized_url in self.visited_urls_in_queue:
+                logging.info(f"[SEED_SKIP] Seed '{normalized_url}' already in frontier or visited. Skipping.")
+                seeds_already_known += 1
+                continue
+
+            # Check robots.txt for the seed URL before adding
+            rp = self._get_robot_parser(normalized_url)
+            if rp.can_fetch(self.user_agent, normalized_url):
+                priority = self._calculate_priority(normalized_url, "", [], 0)
+                heapq.heappush(self.frontier, (priority, normalized_url, 0))
+                self.visited_urls_in_queue.add(normalized_url) # NEW: Add to visited_urls_in_queue when pushed to frontier
+                logging.info(f"[SEED_ADD] Added new seed to frontier: '{normalized_url}'.")
+                seeds_added_count += 1
+            else:
+                logging.info(f"[SEED_SKIP] Seed '{normalized_url}' disallowed by robots.txt.")
+                seeds_already_known += 1
 
         logging.info(f"[START CRAWL] Frontier initialized with {len(self.frontier)} URLs.")
         logging.info(f"Max depth: {self.max_depth}, Default delay: {self.default_delay}s, SimHash threshold: {self.simhash_threshold}")
@@ -115,14 +147,14 @@ class OfflineCrawler:
         skipped_robots = 0
         skipped_duplicate_content = 0
         skipped_non_english = 0
-        skipped_already_processed = 0 # New counter
+        skipped_already_processed = 0 
 
         while self.frontier:
             priority, url, depth = heapq.heappop(self.frontier)
 
-            # Check if this URL has been *processed* before (based on doc_id)
+            # NEW: Check if this URL has been *processed* before (based on doc_id)
             if url in self.url_to_doc_id:
-                logging.info(f"Skipping {url} (already processed and indexed in a previous run).")
+                logging.info(f"[ALREADY_PROCESSED] Skipping {url} (already processed and indexed in a previous run).")
                 skipped_already_processed += 1
                 continue
 
@@ -140,31 +172,30 @@ class OfflineCrawler:
                 continue
 
             required_delay = self.domain_delays.get(domain, self.default_delay)
-            
+
             if domain in self.last_fetch_time:
                 time_since_last_fetch = time.time() - self.last_fetch_time[domain]
                 if time_since_last_fetch < required_delay:
                     sleep_duration = required_delay - time_since_last_fetch
                     logging.info(f"[DELAY] Sleeping for {sleep_duration:.2f}s for {domain} to respect crawl-delay.")
                     time.sleep(sleep_duration)
-            
-            self.last_fetch_time[domain] = time.time() 
 
-            # NEW: Start timer for fetch and process speed
+            self.last_fetch_time[domain] = time.time()
+
             start_page_time = time.time()
 
-            logging.info(f"\n[CRAWL] Fetching: {url} (Depth: {depth}, Priority: {-priority:.2f})") # Show priority
+            logging.info(f"\n[CRAWL] Fetching: {url} (Depth: {depth}, Priority: {-priority:.2f})")
             try:
                 headers = {'User-Agent': self.user_agent}
-                resp = requests.get(url, headers=headers, timeout=10) # Increased timeout for robustness
+                resp = requests.get(url, headers=headers, timeout=10)
                 resp.raise_for_status()
                 html = resp.text
             except requests.exceptions.RequestException as e:
                 logging.error(f"fetching {url}: {e}")
                 continue
-            
+
             soup = BeautifulSoup(html, "html.parser")
-            
+
             cleaned_text_for_simhash = self._get_cleaned_text_for_simhash(soup)
             if cleaned_text_for_simhash:
                 current_page_simhash = self._compute_simhash(cleaned_text_for_simhash)
@@ -184,7 +215,7 @@ class OfflineCrawler:
 
             self.seen_simhashes.add(current_page_simhash)
             self._save(self.path_to_simhashes, self.seen_simhashes)
-            
+
             tokens_for_indexing = self._preprocess_text(soup)
             if not tokens_for_indexing:
                 logging.info(f"[LANG] Skipping {url} (non-English or no extractable text).")
@@ -196,38 +227,42 @@ class OfflineCrawler:
             self.url_to_doc_id[url] = doc_id
             crawled_count += 1
 
-            # NEW: End timer and print processing speed
             end_page_time = time.time()
             processing_time = end_page_time - start_page_time
             logging.info(f"[SUCCESS] Processed {url} (Doc ID: {doc_id}) in {processing_time:.2f} seconds.")
 
             if depth < self.max_depth:
                 current_page_text_for_scoring = self._get_cleaned_text_for_simhash(soup)
-                current_page_tokens_for_scoring = self._clean_for_scoring(current_page_text_for_scoring) 
-                
+                current_page_tokens_for_scoring = self._clean_for_scoring(current_page_text_for_scoring)
+
                 links_added_from_page = 0
                 for a in soup.find_all("a", href=True):
                     href = urljoin(url, a["href"])
                     href, _ = urldefrag(href)
                     p = urlparse(href)
-                    
-                    if p.scheme in ("http", "https") and href not in self.visited_urls_in_queue:
+
+                    if p.scheme in ("http", "https"):
+                        # NEW: Check if already processed (crawled and indexed)
+                        if href in self.url_to_doc_id:
+                            continue
+                        # NEW: Check if already in frontier/visited_urls_in_queue
+                        if href in self.visited_urls_in_queue:
+                            continue
+
                         target_rp = self._get_robot_parser(href)
                         if target_rp.can_fetch(self.user_agent, href):
                             anchor_text = a.get_text(strip=True)
-                            
+
                             new_priority = self._calculate_priority(
                                 href,
                                 anchor_text,
                                 current_page_tokens_for_scoring,
                                 depth + 1
                             )
-                            
+
                             heapq.heappush(self.frontier, (new_priority, href, depth + 1))
-                            self.visited_urls_in_queue.add(href)
+                            self.visited_urls_in_queue.add(href) # NEW: Add to visited_urls_in_queue when adding to frontier
                             links_added_from_page += 1
-                        # else:
-                            # print(f"  [LINK_SKIP] Extracted link {href} skipped by robots.txt.") # Too verbose, uncomment for deep debugging
                 logging.info(f"[LINKS] Added {links_added_from_page} new links to frontier. Frontier size: {len(self.frontier)}.")
             else:
                 logging.info(f"[LINKS] Max depth reached, no new links added from {url}.")
@@ -239,6 +274,11 @@ class OfflineCrawler:
         logging.info(f"Skipped as non-English or no text: {skipped_non_english}")
         logging.info(f"Skipped (already processed in previous run): {skipped_already_processed}")
         logging.info(f"Remaining URLs in frontier (not crawled): {len(self.frontier)}")
+
+        # NEW: Explicitly save frontier and visited_urls_in_queue on normal completion
+        self._save(self.path_to_frontier, self.frontier)
+        self._save(self.path_to_visited_urls_in_queue, self.visited_urls_in_queue)
+        logging.info("Frontier and visited URLs saved on completion.")
 
 
     def _get_robot_parser(self, url):
@@ -360,7 +400,7 @@ class OfflineCrawler:
 
         score = max(0, score)
         return -score
-    # NEW/MODIFIED METHOD: _clean_for_scoring
+
     def _clean_for_scoring(self, text):
         """
         Basic cleaning: lowercase, remove punctuation, normalize whitespace, and return tokens.
@@ -371,7 +411,7 @@ class OfflineCrawler:
         text = re.sub(r'\s+', ' ', text).strip()
         return text.split() # Return as a list of tokens
 
-    # NEW/MODIFIED METHOD: _get_cleaned_text_for_simhash
+
     def _get_cleaned_text_for_simhash(self, soup):
         """
         Extracts and cleans text specifically for SimHash calculation.
@@ -387,7 +427,7 @@ class OfflineCrawler:
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
-    # NEW METHOD: _compute_simhash (ensure hashlib is imported)
+    # (ensure hashlib is imported)
     def _compute_simhash(self, text, num_bits=64):
         """
         Computes the SimHash of the given text.
@@ -415,7 +455,7 @@ class OfflineCrawler:
                 simhash_val |= (1 << i)
         return simhash_val
 
-    # NEW METHOD: _hamming_distance
+
     def _hamming_distance(self, hash1, hash2):
         """Calculates the Hamming distance between two integers (representing hashes)."""
         x = hash1 ^ hash2
@@ -470,7 +510,7 @@ class OfflineCrawler:
         with open(self.path_to_crawled_data, "wb") as f:
             pickle.dump(self.crawled_data, f)
 
-    # NEW METHOD: _save (generic save)
+    # (generic save)
     def _save(self, path, data):
         """Generic save method for any pickleable data."""
         with open(path, "wb") as f:
@@ -481,35 +521,46 @@ class OfflineCrawler:
         with open(self.path_to_crawled_data, "wb") as f:
             pickle.dump(self.crawled_data, f)
 
-    # MODIFIED METHOD: _load
     def _load(self, path):
-        try:
-            with open(path, "rb") as f:
-                data = pickle.load(f)
-            return data
-        except FileNotFoundError:
-            if path == self.path_to_crawled_data:
-                logging.warning(f"No previous crawl data found, starting fresh for crawled_data.")
-                return {}
-            elif path == self.path_to_simhashes:
-                logging.warning(f"No previous SimHashes found, starting fresh for SimHash store.")
-                return set()
-            else:
-                raise
+            try:
+                with open(path, "rb") as f:
+                    data = pickle.load(f)
+                logging.info(f"Loaded existing data from {path}") # NEW: Log which path loaded
+                return data
+            except FileNotFoundError:
+                logging.warning(f"No previous data found for {path}. Initializing empty.") # MODIFIED: Unified warning message
+                if path == self.path_to_crawled_data:
+                    return {}
+                elif path == self.path_to_simhashes:
+                    return set()
+                # NEW: Handle new paths for frontier and visited_urls_in_queue
+                elif path == self.path_to_frontier:
+                    return [] # Frontier is a list (heapq)
+                elif path == self.path_to_visited_urls_in_queue:
+                    return set()
+                else:
+                    raise # If it's an unrecognized path, re-raise the error
 
     def _handle_interrupt(self, signum, frame):
-        logging.info("Interrupted! Saving current progress...")
-        self._save_all()
+        logging.info("Interrupted! Saving current progress before exiting...")
+        # NEW: Explicitly save frontier and visited_urls_in_queue on interrupt
+        self._save(self.path_to_frontier, self.frontier)
+        self._save(self.path_to_visited_urls_in_queue, self.visited_urls_in_queue)
+        # Call original _save for crawled_data and simhashes to ensure they're saved
+        self._save(self.path_to_crawled_data, self.crawled_data)
+        self._save(self.path_to_simhashes, self.seen_simhashes)
+        logging.info("Frontier and visited URLs saved on interrupt.")
         sys.exit(0)
 
 if __name__ == "__main__":
   
-    seeds = ["https://www.tuebingen.de/",
+    seeds = ["https://visit-tubingen.co.uk/welcome-to-tubingen/",
+             "https://www.tuebingen.de/",
              "https://www.tuebingen.de/#",
              "https://uni-tuebingen.de/en/",
              "https://en.wikipedia.org/wiki/T%C3%BCbingen",
              "https://www.germany.travel/en/cities-culture/tuebingen.html",
-             ""
+             "https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html"
              ]
 
     # Initialize the crawler
