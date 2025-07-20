@@ -1,7 +1,7 @@
 from collections import defaultdict
 import pickle
 import math
-import os
+from sentence_transformers import SentenceTransformer
 
 
 class Indexer:
@@ -10,6 +10,7 @@ class Indexer:
         self.path_to_IDFs = 'data/idfs.pkl'
         self.path_to_crawled_data = 'data/crawled_data.pkl'
         self.path_to_posting_lists = 'data/posting_list.pkl'
+        self.path_to_embeddings='data/sbert_doc_embeddings.pkl'
         
         if not silent:
             self.crawled_data = self._load(self.path_to_crawled_data)
@@ -24,7 +25,36 @@ class Indexer:
         self._build_TF()
         print('Building Inverse Document frequencies...')
         self._build_IDF()
+        print("Precomputing doc embeddings.")
+        self._precompute_document_embeddings()
         print("Indexer run done.")
+
+
+    def _precompute_document_embeddings(self, model_name='all-MiniLM-L6-v2'):
+        model = SentenceTransformer(model_name)
+
+        doc_texts = []
+        doc_ids = []
+
+        for doc_id, doc_data in self.crawled_data.items():
+            tokens = doc_data.get('tokens')
+            if tokens is None:
+                continue
+            text = " ".join(tokens)
+            doc_texts.append(text)
+            doc_ids.append(doc_id)
+
+        print(f"[INFO] Encoding {len(doc_texts)} documents with SBERT...")
+
+        embeddings = model.encode(doc_texts, convert_to_numpy=True, batch_size=16, show_progress_bar=True)
+
+        # Save as {doc_id: np.array}
+        doc_embeddings = {doc_id: emb for doc_id, emb in zip(doc_ids, embeddings)}
+
+        with open(self.path_to_embeddings, 'wb') as f:
+            pickle.dump(doc_embeddings, f)
+
+        print(f"[DONE] Saved to {self.path_to_embeddings}")
 
 
     def get_candidates(self, query, use_proximity=False, proximity_range=3):

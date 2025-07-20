@@ -7,7 +7,13 @@ from Utils.text_preprocessor import preprocess_text
 import time
 
 
-def search(query_text: str, use_hybrid_model=False, use_query_expansion=True):
+def search(query_text: str, 
+           indexer: Indexer, 
+           bm25_model: BM25, 
+           hybrid_model:HybridRetrieval, 
+           use_hybrid_model=False, 
+           use_query_expansion=True):
+    
     start = time.time()
     query_tokens = preprocess_text(query_text, isQuery=True)
     end = time.time()
@@ -24,11 +30,9 @@ def search(query_text: str, use_hybrid_model=False, use_query_expansion=True):
     end = time.time()
     print("Time to expand query: ", end - start)
 
-    start = time.time()
-    ind = Indexer(silent=True)
-    candidates_ids = ind.get_union_candidates(expanded_tokens)
-    end = time.time()
-    print("Time to get candidates: ", end - start)
+    candidates_ids = indexer.get_union_candidates(expanded_tokens)
+
+    print("candidate size = ", len(candidates_ids))
 
     if not candidates_ids:
         return []
@@ -36,16 +40,30 @@ def search(query_text: str, use_hybrid_model=False, use_query_expansion=True):
     start = time.time()
     if use_hybrid_model:
         print("\nUsing hybrid model...\n")
-        model = HybridRetrieval()
-        results = model.retrieve(expanded_tokens)
+        results = hybrid_model.retrieve(expanded_tokens, candidates_ids)
     else:
         print("\nUsing BM25 model...\n")
-        model = BM25()
-        results = model.bm25_ranking(expanded_tokens, candidates_ids)
+        results = bm25_model.bm25_ranking(expanded_tokens, candidates_ids)
     end = time.time()
     print("Time to rank: ", end - start)
 
     return results
+
+def initialize(seeds):
+    #print("Crawling...")
+    #crawler = OfflineCrawler(seeds, max_depth=2)
+    #crawler.run()
+    
+    #print("Indexing...")
+    indexer = Indexer()
+    #indexer.run()
+
+    print("Initializing models...")
+    bm25_model = BM25()
+    hybrid_model = HybridRetrieval()
+
+    return indexer, bm25_model, hybrid_model
+
 
 seeds = [
     "https://visit-tubingen.co.uk/welcome-to-tubingen/",
@@ -92,20 +110,7 @@ seeds = [
     "https://www.mygermanyvacation.com/things-to-do-in-tubingen/"
 ]
 
+ind, bm25, hybrid, = initialize(seeds)
 
-""" crawler = OfflineCrawler(seeds, max_depth=2)
-crawler.run() """
-
-start = time.time()
-#ind = Indexer()
-#ind.run()
-end = time.time()
-print("Time to index: ", end - start)
-
-for r in search('food', use_hybrid_model=False, use_query_expansion=True)[:10]:
+for r in search('food', ind, bm25, hybrid, use_hybrid_model=True, use_query_expansion=True)[:10]:
     print(r)
-
-
-
-# TODO implement query term relevance: query terms from the user must be 
-# prioritiezed over expanded query terms
