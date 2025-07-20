@@ -44,8 +44,8 @@ class OfflineCrawler:
 
         self.crawled_data = self._load(self.path_to_crawled_data)
         self.seen_simhashes = self._load(self.path_to_simhashes)
-        self.frontier = self._load(self.path_to_frontier) # NEW: Load persistent frontier
-        self.visited_urls_in_queue = self._load(self.path_to_visited_urls_in_queue) # NEW: Load persistent visited URLs
+        self.frontier = self._load(self.path_to_frontier) 
+        self.visited_urls_in_queue = self._load(self.path_to_visited_urls_in_queue) 
 
         signal.signal(signal.SIGINT, self._handle_interrupt) 
 
@@ -82,12 +82,50 @@ class OfflineCrawler:
             "culture", "art", "theater", "theatre", "museums", "exhibitions", "music",
             "cinema", "books", "literature", "galleries"
         }
+        
+        # NEW: Tiered Domain Lists
+        self.high_prio_domains = {
+            "tuebingen.de", 
+            "uni-tuebingen.de", 
+            "visit-tuebingen.info", # Often official tourism site
+            "stadtmuseum-tuebingen.de",
+            "schloss-hohentuebingen.de", # Example official site
+            "stiftskirche-tuebingen.de", # Example official site
+            # Add other official Tübingen-related sites here
+        }
+
+        # Domains to be put last in queue (effectively, very low priority)
+        # These are domains that are known to be problematic, mostly irrelevant, or overwhelming.
+        self.blacklisted_domains = {
+            "pinterest.com", # Often leads to images/social media, not rich content
+            "facebook.com", "instagram.com", "twitter.com", "youtube.com", # Social media
+            "maps.google.com", "google.com", # Search/Map related
+            "amazon.com", "ebay.com", # E-commerce
+            "booking.com", "getyourguide.com", "viator.com", # General booking sites (unless specifically target relevant subpaths)
+            # You can add the problematic "speisekartenweb.de" here if it's always German and irrelevant
+            "speisekartenweb.de"
+        }
+        # The remaining domains will be considered "normal"
+
+        # NEW: URL Ending Blacklist (Top-level domains or file extensions)
+        self.url_ending_blacklist = {
+            ".ru", ".cn", ".br", ".fr", ".es", ".it", ".jp", ".kr", ".pt", ".cz", ".pl", ".ch", # Common non-English TLDs
+            ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".zip", ".rar", # Document/Archive files
+            ".jpg", ".jpeg", ".png", ".gif", ".svg", ".mp4", ".mov", ".avi", ".mp3", ".wav", # Media files
+            ".exe", ".dmg", ".apk", ".iso", # Executables
+            ".xml", ".rss", ".atom", # Feeds/XML (unless specifically targeting sitemaps for links)
+            ".css", ".js", # Styling/Scripting files
+            "tel:", "mailto:", "ftp:", # Non-HTTP/HTTPS schemes
+            "javascript:", "#" # In-page anchors or javascript links
+        }
+
+        # Add initial seeds to the frontier (ensures they are high priority at start/resume)
+        self._add_initial_seeds(seeds)
 
 
     def run(self):
         self.last_fetch_time = {} 
 
-        # NEW: Integrate new seeds into the existing frontier intelligently
         seeds_already_known = 0
         seeds_added_count = 0
         total_seeds_to_process = len(self.seeds)
@@ -117,12 +155,18 @@ class OfflineCrawler:
                 seeds_already_known += 1
                 continue
 
+            # NEW: Check for blacklisted domains or URL endings for seeds
+            if parsed_url.netloc in self.blacklisted_domains or self._is_blacklisted_ending(normalized_url):
+                logging.warning(f"[SEED_SKIP] Seed '{normalized_url}' domain/ending blacklisted. Skipping.")
+                seeds_already_known += 1
+                continue
+
             # Check robots.txt for the seed URL before adding
             rp = self._get_robot_parser(normalized_url)
             if rp.can_fetch(self.user_agent, normalized_url):
                 priority = self._calculate_priority(normalized_url, "", [], 0)
                 heapq.heappush(self.frontier, (priority, normalized_url, 0))
-                self.visited_urls_in_queue.add(normalized_url) # NEW: Add to visited_urls_in_queue when pushed to frontier
+                self.visited_urls_in_queue.add(normalized_url) # Add to visited_urls_in_queue when pushed to frontier
                 logging.info(f"[SEED_ADD] Added new seed to frontier: '{normalized_url}'.")
                 seeds_added_count += 1
             else:
@@ -131,16 +175,33 @@ class OfflineCrawler:
 
         logging.info(f"[START CRAWL] Frontier initialized with {len(self.frontier)} URLs.")
         logging.info(f"Max depth: {self.max_depth}, Default delay: {self.default_delay}s, SimHash threshold: {self.simhash_threshold}")
-       
+        
         # Track some statistics
         crawled_count = 0
         skipped_robots = 0
         skipped_duplicate_content = 0
         skipped_non_english = 0
         skipped_already_processed = 0 
+        skipped_blacklisted = 0 # NEW statistic
 
         while self.frontier:
             priority, url, depth = heapq.heappop(self.frontier)
+
+            # --- NEW: Immediate Filtering (Most Efficient) ---
+            parsed_url = urlparse(url)
+            domain = parsed_url.netloc
+
+            if self._is_blacklisted_ending(url):
+                logging.info(f"[BLACKLIST_ENDING] Skipping {url} due to blacklisted URL ending.")
+                skipped_blacklisted += 1
+                continue
+
+            if domain in self.blacklisted_domains:
+                logging.info(f"[BLACKLIST_DOMAIN] Skipping {url} due to blacklisted domain: {domain}.")
+                skipped_blacklisted += 1
+                continue
+            # --- END Immediate Filtering ---
+
 
             # NEW: Check if this URL has been *processed* before (based on doc_id)
             if url in self.url_to_doc_id:
@@ -232,11 +293,17 @@ class OfflineCrawler:
                     p = urlparse(href)
 
                     if p.scheme in ("http", "https"):
-                        # NEW: Check if already processed (crawled and indexed)
-                        if href in self.url_to_doc_id:
-                            continue
-                        # NEW: Check if already in frontier/visited_urls_in_queue
-                        if href in self.visited_urls_in_queue:
+                        # --- NEW: Immediate Filtering for new links ---
+                        if self._is_blacklisted_ending(href):
+                            # logging.info(f"[BLACKLIST_OUT_ENDING] Not adding {href} due to blacklisted ending.")
+                            continue # Skip adding this link
+                        if p.netloc in self.blacklisted_domains:
+                            # logging.info(f"[BLACKLIST_OUT_DOMAIN] Not adding {href} due to blacklisted domain.")
+                            continue # Skip adding this link
+                        # --- END Immediate Filtering ---
+
+                        # NEW: Check if already processed (crawled and indexed) or already in frontier
+                        if href in self.url_to_doc_id or href in self.visited_urls_in_queue:
                             continue
 
                         target_rp = self._get_robot_parser(href)
@@ -250,9 +317,17 @@ class OfflineCrawler:
                                 depth + 1
                             )
 
-                            heapq.heappush(self.frontier, (new_priority, href, depth + 1))
-                            self.visited_urls_in_queue.add(href) # NEW: Add to visited_urls_in_queue when adding to frontier
-                            links_added_from_page += 1
+                            if new_priority != -float('inf'): # Only add if not effectively blacklisted by _calculate_priority
+                                heapq.heappush(self.frontier, (new_priority, href, depth + 1))
+                                self.visited_urls_in_queue.add(href) 
+                                links_added_from_page += 1
+                            else:
+                                # This log is handled by the early filtering for blacklisted urls
+                                pass
+                        else:
+                            # logging.info(f"[ROBOTS_OUT] Not adding {href} due to robots.txt rules.")
+                            pass
+
                 logging.info(f"[LINKS] Added {links_added_from_page} new links to frontier. Frontier size: {len(self.frontier)}.")
             else:
                 logging.info(f"[LINKS] Max depth reached, no new links added from {url}.")
@@ -263,13 +338,13 @@ class OfflineCrawler:
         logging.info(f"Skipped as content duplicates (SimHash): {skipped_duplicate_content}")
         logging.info(f"Skipped as non-English or no text: {skipped_non_english}")
         logging.info(f"Skipped (already processed in previous run): {skipped_already_processed}")
+        logging.info(f"Skipped (blacklisted domain/ending): {skipped_blacklisted}") # NEW stat
         logging.info(f"Remaining URLs in frontier (not crawled): {len(self.frontier)}")
 
-        # NEW: Explicitly save frontier and visited_urls_in_queue on normal completion
+        # Explicitly save frontier and visited_urls_in_queue on normal completion
         self._save(self.path_to_frontier, self.frontier)
         self._save(self.path_to_visited_urls_in_queue, self.visited_urls_in_queue)
         logging.info("Frontier and visited URLs saved on completion.")
-
 
     def _get_robot_parser(self, url):
         parsed_url = urlparse(url)
@@ -341,56 +416,103 @@ class OfflineCrawler:
         return self.robot_parsers[domain]
 
     def _calculate_priority(self, url, anchor_text, source_page_tokens, current_depth):
-        score = 0
-        # Define weights for each relevance tier
-        VERY_RELEVANT_WEIGHT = 20
-        RELEVANT_WEIGHT = 10
-        MODERATELY_RELEVANT_WEIGHT = 5
-        DEPTH_PENALTY_WEIGHT = 5
-
-        # 1. Anchor Text Relevance (Highest Impact)
-        if anchor_text:
-            cleaned_anchor_text_tokens = set(self._clean_for_scoring(anchor_text))
+            score = 0
             
-            # Check against each tier
-            common_vr_keywords = cleaned_anchor_text_tokens.intersection(self.very_relevant_keywords)
-            common_r_keywords = cleaned_anchor_text_tokens.intersection(self.relevant_keywords)
-            common_mr_keywords = cleaned_anchor_text_tokens.intersection(self.moderately_relevant_keywords)
-            
-            score += len(common_vr_keywords) * VERY_RELEVANT_WEIGHT
-            score += len(common_r_keywords) * RELEVANT_WEIGHT
-            score += len(common_mr_keywords) * MODERATELY_RELEVANT_WEIGHT
+            # Define base weights for keyword tiers (these are now very significant)
+            VERY_RELEVANT_WEIGHT = 70  # Higher impact
+            RELEVANT_WEIGHT = 30     # Higher impact
+            MODERATELY_RELEVANT_WEIGHT = 15 # Higher impact
 
-        # 2. URL Keyword Relevance (High Impact)
-        parsed_url = urlparse(url)
-        url_components_text = (parsed_url.netloc + parsed_url.path + parsed_url.query).lower()
-        url_components_tokens = set(self._clean_for_scoring(url_components_text)) 
+            # Domain-based score adjustments
+            HIGH_PRIO_DOMAIN_BASE_SCORE = 300 # Significant boost for high priority domains
+            BLACKLIST_DOMAIN_PENALTY = -10000 # Effectively puts them at the very end
+
+            # Depth penalty parameters
+            BASE_DEPTH_PENALTY_PER_LEVEL = 10
+            # For normal/high-prio domains, penalty is linear.
+            # For blacklisted domains, they should already be filtered/at end.
+
+            parsed_url = urlparse(url)
+            domain = parsed_url.netloc
+
+            # 0. Immediate Filtering for Blacklisted Endings
+            if self._is_blacklisted_ending(url):
+                return -float('inf') # Guaranteed lowest priority, effectively removed
+
+            # 1. Domain-Tier Prioritization
+            if domain in self.blacklisted_domains:
+                # If a domain is blacklisted, its priority is extremely low.
+                # We still let it through this function to return -float('inf'),
+                # but the 'run' loop should ideally filter these early.
+                return -float('inf') 
+            elif domain in self.high_prio_domains:
+                score += HIGH_PRIO_DOMAIN_BASE_SCORE
+                # For high-prio domains, maybe a slightly gentler depth penalty,
+                # but let the keyword density still drive it if they go off-topic.
+                # No specific multiplier here, as keywords should handle it.
+            # else: It's a "normal" domain. Its score will be purely built from keyword matches.
+
+            # 2. Anchor Text Relevance (Crucial for "normal" domains)
+            if anchor_text:
+                cleaned_anchor_text_tokens = set(self._clean_for_scoring(anchor_text))
+                
+                score += len(cleaned_anchor_text_tokens.intersection(self.very_relevant_keywords)) * VERY_RELEVANT_WEIGHT
+                score += len(cleaned_anchor_text_tokens.intersection(self.relevant_keywords)) * RELEVANT_WEIGHT
+                score += len(cleaned_anchor_text_tokens.intersection(self.moderately_relevant_keywords)) * MODERATELY_RELEVANT_WEIGHT
+
+            # 3. URL Keyword Relevance (path, domain, query) - Also crucial for "normal" domains
+            url_components_text = (parsed_url.netloc + parsed_url.path + parsed_url.query).lower()
+            url_components_tokens = set(self._clean_for_scoring(url_components_text))
+            
+            score += len(url_components_tokens.intersection(self.very_relevant_keywords)) * VERY_RELEVANT_WEIGHT
+            score += len(url_components_tokens.intersection(self.relevant_keywords)) * RELEVANT_WEIGHT
+            score += len(url_components_tokens.intersection(self.moderately_relevant_keywords)) * MODERATELY_RELEVANT_WEIGHT
+
+            # 4. Source Page Context Relevance (still contributes, but less than direct link signals)
+            if source_page_tokens:
+                source_tokens_set = set(source_page_tokens)
+                
+                score += len(source_tokens_set.intersection(self.very_relevant_keywords)) * (VERY_RELEVANT_WEIGHT / 3) # Reduced influence
+                score += len(source_tokens_set.intersection(self.relevant_keywords)) * (RELEVANT_WEIGHT / 3)
+                score += len(source_tokens_set.intersection(self.moderately_relevant_keywords)) * (MODERATELY_RELEVANT_WEIGHT / 3)
+
+            # 5. Depth Penalty (Linear, but combined with the stronger keyword weights)
+            # This will ensure that if a "normal" domain has great keywords at depth 1, it gets high prio,
+            # but if it keeps linking to irrelevant stuff, its score quickly drops due to depth AND lack of keywords.
+            score -= (current_depth * BASE_DEPTH_PENALTY_PER_LEVEL)
+
+            # Ensure score is not negative if it shouldn't be, before negating for heapq
+            # If score is very low but not -inf, it will still be last in the heap.
+            return -score # heapq is a min-heap, so we negate for max-priority
         
-        common_vr_url = url_components_tokens.intersection(self.very_relevant_keywords)
-        common_r_url = url_components_tokens.intersection(self.relevant_keywords)
-        common_mr_url = url_components_tokens.intersection(self.moderately_relevant_keywords)
-        
-        score += len(common_vr_url) * VERY_RELEVANT_WEIGHT
-        score += len(common_r_url) * RELEVANT_WEIGHT
-        score += len(common_mr_url) * MODERATELY_RELEVANT_WEIGHT
+    def _add_initial_seeds(self, seeds):
+            # A set to track seeds that have already been considered for initial addition in this run
+            processed_seeds_for_init = set() 
 
-        # 3. Source Page Context Relevance (Medium Impact)
-        if source_page_tokens:
-            source_tokens_set = set(source_page_tokens)
-            
-            common_vr_source = source_tokens_set.intersection(self.very_relevant_keywords)
-            common_r_source = source_tokens_set.intersection(self.relevant_keywords)
-            common_mr_source = source_tokens_set.intersection(self.moderately_relevant_keywords)
-
-            score += len(common_vr_source) * (VERY_RELEVANT_WEIGHT / 2)
-            score += len(common_r_source) * (RELEVANT_WEIGHT / 2)
-            score += len(common_mr_source) * (MODERATELY_RELEVANT_WEIGHT / 2)
-
-        # 4. Depth Penalty
-        score -= (current_depth * DEPTH_PENALTY_WEIGHT)
-
-        score = max(0, score)
-        return -score
+            for url in seeds:
+                normalized_url, _ = urldefrag(urljoin(url, url))
+                
+                # Only add if not already processed in previous runs and not currently in the queue
+                if normalized_url not in self.url_to_doc_id and normalized_url not in self.visited_urls_in_queue:
+                    # Assign an extremely high priority to initial seeds at depth 0
+                    # A very large positive number, as we negate it for min-heap
+                    initial_seed_priority_score = 10000 
+                    
+                    # Check if this URL's domain is blacklisted, even for a seed, to avoid wasting time
+                    parsed_url = urlparse(normalized_url)
+                    if parsed_url.netloc in self.blacklisted_domains or self._is_blacklisted_ending(normalized_url):
+                        logging.warning(f"[SEED_SKIP] Seed '{normalized_url}' domain/ending blacklisted. Skipping initial add.")
+                        continue
+                    
+                    # Check robots.txt for the seed URL before adding
+                    rp = self._get_robot_parser(normalized_url)
+                    if rp.can_fetch(self.user_agent, normalized_url):
+                        # Add to frontier with very high priority
+                        heapq.heappush(self.frontier, (-initial_seed_priority_score, normalized_url, 0))
+                        self.visited_urls_in_queue.add(normalized_url) 
+                        logging.info(f"[SEED_ADD] Added new seed to frontier: '{normalized_url}' (Priority: {initial_seed_priority_score}).")
+                    else:
+                        logging.info(f"[SEED_SKIP] Seed '{normalized_url}' disallowed by robots.txt.")
 
     def _clean_for_scoring(self, text):
         """
@@ -490,7 +612,7 @@ class OfflineCrawler:
             try:
                 with open(path, "rb") as f:
                     data = pickle.load(f)
-                logging.info(f"Loaded existing data from {path}") # NEW: Log which path loaded
+                logging.info(f"Loaded existing data from {path}") # Log which path loaded
                 return data
             except FileNotFoundError:
                 logging.warning(f"No previous data found for {path}. Initializing empty.") # MODIFIED: Unified warning message
@@ -498,7 +620,7 @@ class OfflineCrawler:
                     return {}
                 elif path == self.path_to_simhashes:
                     return set()
-                # NEW: Handle new paths for frontier and visited_urls_in_queue
+                # Handle new paths for frontier and visited_urls_in_queue
                 elif path == self.path_to_frontier:
                     return [] # Frontier is a list (heapq)
                 elif path == self.path_to_visited_urls_in_queue:
@@ -508,7 +630,7 @@ class OfflineCrawler:
 
     def _handle_interrupt(self, signum, frame):
         logging.info("Interrupted! Saving current progress before exiting...")
-        # NEW: Explicitly save frontier and visited_urls_in_queue on interrupt
+        # Explicitly save frontier and visited_urls_in_queue on interrupt
         self._save(self.path_to_frontier, self.frontier)
         self._save(self.path_to_visited_urls_in_queue, self.visited_urls_in_queue)
         # Call original _save for crawled_data and simhashes to ensure they're saved
@@ -517,67 +639,96 @@ class OfflineCrawler:
         logging.info("Frontier and visited URLs saved on interrupt.")
         sys.exit(0)
 
-# if __name__ == "__main__":
+    def _is_blacklisted_ending(self, url): # <--- THIS METHOD NEEDS TO BE INDENTED
+        """Checks if the URL ends with any blacklisted extension or string."""
+        url_lower = url.lower()
+        for ending in self.url_ending_blacklist:
+            if url_lower.endswith(ending):
+                return True
+        return False
+
+if __name__ == "__main__":
   
-#     seeds = [
-#         "https://visit-tubingen.co.uk/welcome-to-tubingen/",
-#         "https://www.tuebingen.de/",
-#         "https://uni-tuebingen.de/en/",
-#         "https://en.wikipedia.org/wiki/T%C3%BCbingen",
-#         "https://www.germany.travel/en/cities-culture/tuebingen.html",
-#         "https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html",
-#         "https://www.europeanbestdestinations.com/destinations/tubingen/",
-#         "https://www.tuebingen.de/en/",
-#         "https://www.stadtmuseum-tuebingen.de/english/",
-#         "https://www.tuebingen-info.de/",
-#         "https://tuebingenresearchcampus.com/en/",
-#         "https://www.welcome.uni-tuebingen.de/",
-#         "https://integreat.app/tuebingen/en/news/tu-news",
-#         "https://tunewsinternational.com/category/news-in-english/",
-#         "https://historicgermany.travel/historic-germany/tubingen/",
-#         "https://visit-tubingen.co.uk/",
-#         "https://www.germansights.com/tubingen/",
-#         "https://www.tripadvisor.com/Restaurants-g198539-Tubingen_Baden_Wurttemberg.html",
-#         "https://www.tripadvisor.com/Restaurants-g198539-zfp58-Tubingen_Baden_Wurttemberg.html",
-#         "https://www.tripadvisor.com/Attractions-g198539-Activities-c36-Tubingen_Baden_Wurttemberg.html",
-#         "https://theculturetrip.com/europe/germany/articles/the-best-things-to-see-and-do-in-tubingen-germany",
-#         "https://www.mygermanyvacation.com/best-things-to-do-and-see-in-tubingen-germany/",
-#         "https://justinpluslauren.com/things-to-do-in-tubingen-germany/",
-#         "https://simplifylivelove.com/tubingen-germany/",
-#         "https://wanderlog.com/list/geoCategory/199488/where-to-eat-best-restaurants-in-tubingen",
-#         "https://wanderlog.com/list/geoCategory/312176/best-spots-for-lunch-in-tubingen",
-#         "https://guide.michelin.com/us/en/baden-wurttemberg/tbingen/restaurants",
-#         "https://www.outdooractive.com/en/eat-and-drink/tuebingen/eat-and-drink-in-tuebingen/21873363/",
-#         "https://www.opentable.com/food-near-me/stadt-tubingen-germany",
-#         "https://www.1821tuebingen.de/",
-#         "https://www.historicgermany.travel/tuebingen/",
-#         "https://www.expedia.com/Things-To-Do-In-Tubingen.d55289.Travel-Guide-Activities",
-#         "https://www.lonelyplanet.com/germany/baden-wurttemberg/tubingen",
-#         "https://www.tripadvisor.com/Attraction_Review-g198539-d14983273-Reviews-Tubingen_Weinwanderweg-Tubingen_Baden_Wurttemberg.html",
-#         "https://www.yelp.com/search?find_desc=Restaurants&find_loc=T%C3%BCbingen",
-#         "https://guide.michelin.com/en/baden-wurttemberg/tubingen/restaurants",
-#         "https://wanderlog.com/geoInMonth/10053/7/tubingen-in-july",
-#         "https://www.wanderlog.com/list/geoCategory/76026/best-restaurants-in-tubingen",
-#         "https://en.wikivoyage.org/wiki/T%C3%BCbingen",
-#         "https://en.wikivoyage.org/wiki/T%C3%BCbingen#Eat",
-#         "https://en.wikivoyage.org/wiki/T%C3%BCbingen#Drink",
-#         "https://www.mygermanyvacation.com/things-to-do-in-tubingen/"
-#     ]
+    seeds = [
+        "https://visit-tubingen.co.uk/welcome-to-tubingen/",
+        "https://www.tuebingen.de/",
+        "https://uni-tuebingen.de/en/",
+        "https://en.wikipedia.org/wiki/T%C3%BCbingen",
+        "https://www.germany.travel/en/cities-culture/tuebingen.html",
+        "https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html",
+        "https://www.europeanbestdestinations.com/destinations/tubingen/",
+        "https://www.tuebingen.de/en/",
+        "https://www.stadtmuseum-tuebingen.de/english/",
+        "https://www.tuebingen-info.de/",
+        "https://tuebingenresearchcampus.com/en/",
+        "https://www.welcome.uni-tuebingen.de/",
+        "https://integreat.app/tuebingen/en/news/tu-news",
+        "https://tunewsinternational.com/category/news-in-english/",
+        "https://historicgermany.travel/historic-germany/tubingen/",
+        "https://visit-tubingen.co.uk/",
+        "https://www.germansights.com/tubingen/",
+        "https://www.tripadvisor.com/Restaurants-g198539-Tubingen_Baden_Wurttemberg.html",
+        "https://www.tripadvisor.com/Restaurants-g198539-zfp58-Tubingen_Baden_Wurttemberg.html",
+        "https://www.tripadvisor.com/Attractions-g198539-Activities-c36-Tubingen_Baden_Wurttemberg.html",
+        "https://theculturetrip.com/europe/germany/articles/the-best-things-to-see-and-do-in-tubingen-germany",
+        "https://www.mygermanyvacation.com/best-things-to-do-and-see-in-tubingen-germany/",
+        "https://justinpluslauren.com/things-to-do-in-tubingen-germany/",
+        "https://simplifylivelove.com/tubingen-germany/",
+        "https://guide.michelin.com/us/en/baden-wurttemberg/tbingen/restaurants",
+        "https://www.outdooractive.com/en/eat-and-drink/tuebingen/eat-and-drink-in-tuebingen/21873363/",
+        "https://www.opentable.com/food-near-me/stadt-tubingen-germany",
+        "https://www.1821tuebingen.de/",
+        "https://www.historicgermany.travel/tuebingen/",
+        "https://www.expedia.com/Things-To-Do-In-Tubingen.d55289.Travel-Guide-Activities",
+        "https://www.lonelyplanet.com/germany/baden-wurttemberg/tubingen",
+        "https://www.tripadvisor.com/Attraction_Review-g198539-d14983273-Reviews-Tubingen_Weinwanderweg-Tubingen_Baden_Wurttemberg.html",
+        "https://www.yelp.com/search?find_desc=Restaurants&find_loc=T%C3%BCbingen",
+        "https://guide.michelin.com/en/baden-wurttemberg/tubingen/restaurants",
+        "https://en.wikivoyage.org/wiki/T%C3%BCbingen",
+        "https://en.wikivoyage.org/wiki/T%C3%BCbingen#Eat",
+        "https://en.wikivoyage.org/wiki/T%C3%BCbingen#Drink",
+        "https://www.mygermanyvacation.com/things-to-do-in-tubingen/"
+    ]
+
+    seeds = ["https://www.germany.travel/de/staedte-kultur/tuebingen.html",
+    "https://www.stadtmuseum-tuebingen.de/english/",
+    "https://www.reddit.com/r/Tuebingen/comments/1rhpyk/life_as_an_english_speaking_person_in_t%C3%BCbingen/",
+    "https://historicgermany.travel/historic-germany/tubingen/",
+    "https://www.glassdoor.de/Job/t%C3%BCbingen-english-jobs-SRCH_IL.0,8_IC2689943_KO9,16.htm",
+    "https://www.visit-bw.com/en/article/tubingen/df9223e2-70e5-4ee9-b3f2-cd2355ab8551#/",
+    "https://www.tripadvisor.com/Restaurants-g198539-Tubingen_Baden_Wurttemberg.html",
+    "https://de.restaurantguru.com/Tubingen",
+    "https://www.thefork.com/restaurants/tubingen-c561333",
+    "https://www.outdooractive.com/en/places-to-eat-and-drink/tuebingen/eat-and-drink-in-tuebingen/21873363/",
+    "https://wanderlog.com/list/geoCategory/368520/",
+    "https://thetouristchecklist.com/things-to-do-in-tubingen/",
+    "https://thetouristchecklist.com/things-to-do-in-tubingen/",
+    "https://justinpluslauren.com/things-to-do-in-tubingen-germany/",
+    "https://theculturetrip.com/europe/germany/articles/the-best-things-to-see-and-do-in-tubingen-germany",
+    "https://velvetescape.com/things-to-do-in-tubingen/",
+    "https://thedesigntourist.com/12-top-things-to-do-in-tubingen-germany/",
+    "https://globaltravelescapades.com/things-to-do-in-tubingen-germany/",
+    "https://thespicyjourney.com/magical-things-to-do-in-tubingen-in-one-day-tuebingen-germany-travel-guide/",
+    "https://www.minube.net/what-to-see/germany/baden-wurttemberg/tubingen",
+    "https://veganfamilyadventures.com/15-best-things-to-do-in-tubingen-germany/",
+    "https://www.orangesmile.com/travelguide/tubingen/index.htm",
+    "https://www.try-travel.com/blog/europe/germany/tubingen/things-to-do-in-tubingen/",
+    "https://simplifylivelove.com/tubingen-germany/"]
             
 
-#     # Initialize the crawler
-#     # max_depth: How many layers deep the crawler will go. Start with 1 or 2 for testing.
-#     # delay: Delay between requests to the same domain (in seconds). Adjust as needed.
-#     # simhash_threshold: How similar content can be before being considered a duplicate.
-#     crawler = OfflineCrawler(
-#         seeds=seeds,
-#         max_depth=2,  # Start with a low depth for quick tests
-#         delay=0.5,      # Be polite with the crawl delay
-#         simhash_threshold=3
-#     )
+    # Initialize the crawler
+    # max_depth: How many layers deep the crawler will go. Start with 1 or 2 for testing.
+    # delay: Delay between requests to the same domain (in seconds). Adjust as needed.
+    # simhash_threshold: How similar content can be before being considered a duplicate.
+    crawler = OfflineCrawler(
+        seeds=seeds,
+        max_depth=2,  # Start with a low depth for quick tests
+        delay=0.5,      # Be polite with the crawl delay
+        simhash_threshold=3
+    )
 
-#     # Run the crawler
-#     crawler.run()
+    # Run the crawler
+    crawler.run()
 
-#     print("\nCrawler finished.")
+    print("\nCrawler finished.")
 
