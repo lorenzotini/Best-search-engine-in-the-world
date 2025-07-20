@@ -5,13 +5,15 @@ import os
 
 
 class Indexer:
-    def __init__(self):
+    def __init__(self, silent=False):
         self.path_to_TFs = 'data/tfs.pkl'
         self.path_to_IDFs = 'data/idfs.pkl'
         self.path_to_crawled_data = 'data/crawled_data.pkl'
         self.path_to_posting_lists = 'data/posting_list.pkl'
         
-        self.crawled_data = self._load(self.path_to_crawled_data)
+        if not silent:
+            self.crawled_data = self._load(self.path_to_crawled_data)
+            
         self.skip_dict, self.pos_index_dict = self._load(self.path_to_posting_lists)
 
 

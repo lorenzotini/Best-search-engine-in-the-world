@@ -25,7 +25,7 @@ def search(query_text: str, use_hybrid_model=False, use_query_expansion=True):
     print("Time to expand query: ", end - start)
 
     start = time.time()
-    ind = Indexer()
+    ind = Indexer(silent=True)
     candidates_ids = ind.get_union_candidates(expanded_tokens)
     end = time.time()
     print("Time to get candidates: ", end - start)
@@ -97,7 +97,7 @@ seeds = [
 crawler.run() """
 
 start = time.time()
-ind = Indexer()
+#ind = Indexer()
 #ind.run()
 end = time.time()
 print("Time to index: ", end - start)
