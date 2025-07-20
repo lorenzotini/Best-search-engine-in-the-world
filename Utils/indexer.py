@@ -16,9 +16,13 @@ class Indexer:
 
 
     def run(self):
+        print('Indexing...')
         self._index_documents()
+        print('Building Term frequencies...')
         self._build_TF()
+        print('Building Inverse Document frequencies...')
         self._build_IDF()
+        print("Indexer run done.")
 
 
     def get_candidates(self, query, use_proximity=False, proximity_range=3):
@@ -181,14 +185,11 @@ class Indexer:
         return False
 
     def _index_documents(self):
-        print('Indexing...')
         self._build_skip_pointers(self.crawled_data)
         self._build_positional_index(self.crawled_data)
         
-        print("Saving posting lists...")
         with open(self.path_to_posting_lists, "wb") as f:
             pickle.dump((self.skip_dict, self.pos_index_dict), f)
-        print("Done.")
 
 
     def _build_skip_pointers(self, crawled_data):
@@ -277,11 +278,9 @@ class Indexer:
     def _build_IDF(self):
         idfs = {}
         D = len(self.crawled_data)
-        # TODO remove this printf after verified that it is correct
-        print("\nNumber of document in the corpus: ", D, "\ndelete this print pls\n")
         # Dts = {key: str, value: (Dt_value: int, seen_in_this_doc: bool)}
         Dts = {}
-        for doc_id, doc_data in self.crawled_data.items(): # TODO .items()?
+        for doc_id, doc_data in self.crawled_data.items():
             tokens = doc_data.get("tokens")
             # TODO fix this check
             if tokens is None:

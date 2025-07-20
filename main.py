@@ -4,11 +4,16 @@ from Utils.bm25 import BM25
 from Utils.hybrid_retrieval import HybridRetrieval
 from Utils.query_expander import QueryExpander
 from Utils.text_preprocessor import preprocess_text
+import time
 
 
 def search(query_text: str, use_hybrid_model=False, use_query_expansion=True):
+    start = time.time()
     query_tokens = preprocess_text(query_text, isQuery=True)
-
+    end = time.time()
+    print("Time to preprocess query: ", end - start)
+    
+    start = time.time()
     if use_query_expansion:
         print("\nExpanding query...\n")
         expander = QueryExpander(max_synonyms=2)
@@ -16,21 +21,31 @@ def search(query_text: str, use_hybrid_model=False, use_query_expansion=True):
         print("Expanded query tokens:", expanded_tokens)
     else:
         expanded_tokens = query_tokens
+    end = time.time()
+    print("Time to expand query: ", end - start)
 
+    start = time.time()
+    ind = Indexer()
     candidates_ids = ind.get_union_candidates(expanded_tokens)
+    end = time.time()
+    print("Time to get candidates: ", end - start)
 
     if not candidates_ids:
         return []
-
+    
+    start = time.time()
     if use_hybrid_model:
         print("\nUsing hybrid model...\n")
         model = HybridRetrieval()
-        return model.retrieve(expanded_tokens)
+        results = model.retrieve(expanded_tokens)
     else:
         print("\nUsing BM25 model...\n")
         model = BM25()
-        return model.bm25_ranking(expanded_tokens, candidates_ids)
+        results = model.bm25_ranking(expanded_tokens, candidates_ids)
+    end = time.time()
+    print("Time to rank: ", end - start)
 
+    return results
 
 seeds = [
     "https://visit-tubingen.co.uk/welcome-to-tubingen/",
@@ -78,32 +93,19 @@ seeds = [
 ]
 
 
-crawler = OfflineCrawler(seeds, max_depth=2)
-crawler.run()
+""" crawler = OfflineCrawler(seeds, max_depth=2)
+crawler.run() """
 
-# ind = Indexer()
-# ind.run()
+start = time.time()
+ind = Indexer()
+#ind.run()
+end = time.time()
+print("Time to index: ", end - start)
 
-# def search(query_text: str, use_hybrid_model=False):
-#     query_tokens = preprocess_query(query_text)
-
-#     candidates_ids = ind.get_union_candidates(query_tokens)
-
-#     if not candidates_ids:
-#             return []
-     
-#     if use_hybrid_model:
-#         print("\nUsing hybrid model...\n")
-#         model = HybridRetrieval()
-#         return model.retrieve(query_tokens)
-#     else:
-#         print("\nUsing BM25 model...\n")
-#         model = BM25()
-#         return model.bm25_ranking(query_tokens, candidates_ids)
+for r in search('food', use_hybrid_model=False, use_query_expansion=True)[:10]:
+    print(r)
 
 
-#for r in search('food', use_hybrid_model=True)[:10]:
-#    print(r)
 
-# TODO whats inside the pkl docs if i re run the crawler and indexer?
-# TODO controllare che non sparisca il log file: ora scompare se runno crawl, interrupt, run indexer
+# TODO implement query term relevance: query terms from the user must be 
+# prioritiezed over expanded query terms
