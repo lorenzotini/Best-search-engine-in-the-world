@@ -61,26 +61,67 @@ class OfflineCrawler:
             
             #Tiered keywords for weighted priority
         self.very_relevant_keywords = {
-            "tuebingen", "tubingen", "eberhard karls universität", "hohentuebingen", "hohentübingen",
-            "stocherkahnrennen", "chocolart", "university", "universität", "neckar", "altstadt", "baden-wuerttemberg", "baden-württemberg"
+            "tuebingen", "tubingen",
+            "eberhard karls universität", "hohentuebingen", "hohentübingen", "schloss hohentübingen",
+            "stocherkahnrennen", "chocolart",
+            "university", "universität", # Keep both for breadth
+            "neckar", "altstadt", # Altstadt is commonly used in English context
+            "baden-wuerttemberg", "baden-württemberg",
+            "hölderlinturm", "hölderlin tower", # Keep both
+            "neckarfront", # Commonly used in English context
+            "stiftskirche", "collegiate church", # Keep both
+            "marktplatz", "market square", # Keep both
+            "rathaus", "town hall", # Keep both
+            "museum", "mut", # MUT is specific
+            "botanical garden", "botanischer garten", # Keep both
+            "fachwerkhaus", "half-timbered house" # Keep both
         }
         self.relevant_keywords = {
-            "city", "stadtfest", "cyber valley", "uniklinik", "university hospital", "tourism", "visitors",
+            "city", "stadtfest", # Stadtfest is common
+            "cyber valley", "uniklinik", "university hospital", # Keep both
+            "tourism", "visitors",
             "restaurants", "cafes", "gastronomy", "food", "drinks", "bars", "bakery",
-            "butcher", "market", "wochenmarkt","schwaebische alb", "schwübische alb", "schoenbuch", "schönbuch",
-            "umbrisch-provenzalischer markt","jazz & klassik tage", "sommernachtskino"
+            "butcher", "market", "wochenmarkt", # Wochenmarkt is common
+            "schwaebische alb", "schwübische alb", "schoenbuch", "schönbuch", # Regional names
+            "umbrisch-provenzalischer markt", "jazz & klassik tage", "sommernachtskino", # Specific event names
+            "weihnachtsmarkt", "christmas market", # Keep both
+            "filmfest", "filmfestival", "umweltfilmfestival", # Keep both filmfest/festival, umwelt specific
+            "literaturfestival", "literature festival", # Keep both
+            "tübingen rennt", "stadtlauf", # Specific event names
+            "maultaschen", "spätzle", # Food names
+            "wein", "wine", # Keep both
+            "brauerei", "brewery", # Keep both
+            "biergarten", "beer garden", # Keep both
+            "stocherkahn", "punt boat", "punting", # Keep all
+            "students", "student life", "nightlife",
+            "max planck institute", "hertie institute", # Specific institute names
+            "ki", "ai", "artificial intelligence", # Common acronyms/terms
+            "biotechnology", "neuroscience" # Research fields
         }
         self.moderately_relevant_keywords = {
             "community", "information", "news", "events", "travel", "sights", "attractions", "living",
             "citizens", "local", "region", "research", "science", "study", "students",
-            "reutlingen", "rottenburg am neckar", "moessingen", "mössingen",
+            "reutlingen", "rottenburg am neckar", "moessingen", "mössingen", # Neighboring towns
             "kirchentellinsfurt", "ammerbuch", "dusslingen", "dußlingen", "gomaringen",
-            "kusterdingen", "ofterdingen", "nehren", "dettenhausen",
-            "housing", "living", "real estate", "traffic", "public transport", "parking",
+            "kusterdingen", "ofterdingen", "nehren", "dettenhausen", # Neighboring towns
+            "housing", "real estate", "traffic", "public transport", "parking",
             "health", "doctors", "pharmacies", "schools", "kindergartens", "sport",
             "clubs", "associations", "town hall", "administration", "waste", "building",
             "culture", "art", "theater", "theatre", "museums", "exhibitions", "music",
-            "cinema", "books", "literature", "galleries"
+            "cinema", "books", "literature", "galleries",
+            "naturpark schönbuch", "schönbuch nature park", # Keep both
+            "neckartal", "neckar valley", # Keep both
+            "hiking", "wandern", # Keep both
+            "cycling", "radfahren", # Keep both
+            "castle", "burg", # Keep both
+            "bus", "train", "deutsche bahn", # Deutsche Bahn is specific
+            "bahnhof", "train station", # Keep both
+            "bürgerbüro", "citizen's office", # Keep both
+            "wirtschaftsförderung", "economic development", # Keep both
+            "integration", # Relevant
+            "volkshochschule", "adult education center", # Keep both
+            "kunsthalle", "landestheater", # Specific institutions
+            "galerie", "gallery" # Keep both
         }
         
         # NEW: Tiered Domain Lists
@@ -122,20 +163,26 @@ class OfflineCrawler:
         # Add initial seeds to the frontier (ensures they are high priority at start/resume)
         self._add_initial_seeds(seeds)
 
-
     def run(self):
-        self.last_fetch_time = {} 
+        self.last_fetch_time = {}
 
         seeds_already_known = 0
         seeds_added_count = 0
         total_seeds_to_process = len(self.seeds)
 
-        #logging.info(f"Initiating seed processing. Total seeds: {total_seeds_to_process}.")
-
+        # Process initial seeds (can be a subset of self.seeds) to populate frontier
+        # This loop only runs once at the beginning of the crawl
         for url in self.seeds:
             # MODIFIED: Normalize URL before checks for consistency
             normalized_url, _ = urldefrag(urljoin(url, url))
-            parsed_url = urlparse(normalized_url)
+            
+            # --- NEW/MODIFIED: Robust URL parsing for seeds ---
+            try:
+                parsed_url = urlparse(normalized_url)
+            except Exception as e:
+                logging.warning(f"[SEED_SKIP] Error parsing seed URL '{url}': {e}. Skipping.")
+                seeds_already_known += 1
+                continue
 
             # Skip malformed URLs early
             if not parsed_url.scheme or not parsed_url.netloc:
@@ -175,21 +222,33 @@ class OfflineCrawler:
 
         logging.info(f"[START CRAWL] Frontier initialized with {len(self.frontier)} URLs.")
         logging.info(f"Max depth: {self.max_depth}, Default delay: {self.default_delay}s, SimHash threshold: {self.simhash_threshold}")
-        
+
         # Track some statistics
         crawled_count = 0
         skipped_robots = 0
         skipped_duplicate_content = 0
         skipped_non_english = 0
-        skipped_already_processed = 0 
-        skipped_blacklisted = 0 # NEW statistic
+        skipped_already_processed = 0
+        skipped_blacklisted = 0
+        skipped_fetch_errors = 0 # NEW: Counter for fetch/request errors
+        skipped_parsing_errors = 0 # NEW: Counter for HTML parsing errors
 
         while self.frontier:
             priority, url, depth = heapq.heappop(self.frontier)
 
-            # --- NEW: Immediate Filtering (Most Efficient) ---
-            parsed_url = urlparse(url)
-            domain = parsed_url.netloc
+            # --- Initial URL validation and Filtering (Most Efficient) ---
+            # NEW/MODIFIED: Robust URL parsing for URLs from frontier
+            try:
+                parsed_url = urlparse(url)
+                if not parsed_url.scheme or not parsed_url.netloc:
+                    logging.warning(f"[MALFORMED_URL] Skipping malformed URL from frontier: '{url}'.")
+                    skipped_fetch_errors += 1 # Count as a fetch error (can't even form a request)
+                    continue
+                domain = parsed_url.netloc
+            except Exception as e:
+                logging.error(f"[URL_PARSE_ERROR] Failed to parse URL '{url}': {e}. Skipping.")
+                skipped_fetch_errors += 1
+                continue
 
             if self._is_blacklisted_ending(url):
                 logging.info(f"[BLACKLIST_ENDING] Skipping {url} due to blacklisted URL ending.")
@@ -200,10 +259,10 @@ class OfflineCrawler:
                 logging.info(f"[BLACKLIST_DOMAIN] Skipping {url} due to blacklisted domain: {domain}.")
                 skipped_blacklisted += 1
                 continue
-            # --- END Immediate Filtering ---
+            # --- END Initial Filtering ---
 
 
-            # NEW: Check if this URL has been *processed* before (based on doc_id)
+            # Check if this URL has been *processed* before (based on doc_id)
             if url in self.url_to_doc_id:
                 logging.info(f"[ALREADY_PROCESSED] Skipping {url} (already processed and indexed in a previous run).")
                 skipped_already_processed += 1
@@ -212,9 +271,6 @@ class OfflineCrawler:
             if depth > self.max_depth:
                 logging.info(f"Skipping {url} (max depth {self.max_depth} reached).")
                 continue
-
-            parsed_url = urlparse(url)
-            domain = parsed_url.netloc
 
             rp = self._get_robot_parser(url)
             if not rp.can_fetch(self.user_agent, url):
@@ -236,22 +292,65 @@ class OfflineCrawler:
             start_page_time = time.time()
 
             logging.info(f"\n[CRAWL] Fetching: {url} (Depth: {depth}, Priority: {-priority:.2f})")
+            html = None # Initialize html to None for clear scope
+
+            # --- NEW/MODIFIED: REQUESTS ERROR CATCHING & ENCODING HANDLING ---
             try:
                 headers = {'User-Agent': self.user_agent}
-                resp = requests.get(url, headers=headers, timeout=10)
-                resp.raise_for_status()
-                html = resp.text
+                # Using stream=True for potentially problematic responses, and explicit decode
+                # to handle encoding errors gracefully instead of crashing.
+                with requests.get(url, headers=headers, timeout=15, stream=True) as resp: # Increased timeout slightly
+                    resp.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+
+                    # Attempt to read content with resp.encoding, fall back to utf-8, then iso-8859-1
+                    # This is the most robust way to handle diverse encodings.
+                    try:
+                        html = resp.content.decode(resp.encoding if resp.encoding else 'utf-8')
+                    except UnicodeDecodeError:
+                        logging.warning(f"[ENCODING_ERROR] UnicodeDecodeError for {url} with detected encoding '{resp.encoding}'. Trying utf-8 then iso-8859-1.")
+                        try:
+                            html = resp.content.decode('utf-8', errors='replace') # Replace invalid chars
+                        except UnicodeDecodeError:
+                            logging.warning(f"[ENCODING_ERROR] Failed to decode {url} with utf-8. Trying iso-8859-1.")
+                            html = resp.content.decode('iso-8859-1', errors='replace') # Last resort
+                            
             except requests.exceptions.RequestException as e:
-                logging.error(f"fetching {url}: {e}")
+                # Catches ConnectionError, Timeout, HTTPError (4xx, 5xx), TooManyRedirects, etc.
+                logging.error(f"[FETCH_ERROR] Error fetching {url}: {e}. Skipping this URL.")
+                skipped_fetch_errors += 1
+                continue # Skip to the next URL in the frontier
+
+            # Check if HTML content was actually obtained after decoding attempts
+            if not html:
+                logging.error(f"[FETCH_ERROR] No HTML content obtained for {url} after decoding attempts. Skipping.")
+                skipped_fetch_errors += 1
                 continue
 
-            soup = BeautifulSoup(html, "html.parser")
+            # --- NEW/MODIFIED: BEAUTIFULSOUP PARSING ERROR CATCHING ---
+            soup = None
+            try:
+                soup = BeautifulSoup(html, "html.parser")
+                # A very basic sanity check: if no <body> tag is found, it might be truly malformed.
+                if not soup.body:
+                    logging.warning(f"[PARSING_WARN] Page {url} appears to have no body content after parsing. Skipping.")
+                    skipped_parsing_errors += 1
+                    continue
+            except Exception as e:
+                # This will catch bs4.exceptions.ParserRejectedMarkup and other parsing errors
+                logging.error(f"[PARSING_ERROR] Error parsing HTML for {url}: {e}. Skipping this URL.")
+                skipped_parsing_errors += 1
+                continue # Skip to the next URL in the frontier
 
+
+            # --- SIMHASH AND CONTENT PROCESSING (unchanged core logic, but now protected by try-excepts above) ---
             cleaned_text_for_simhash = self._get_cleaned_text_for_simhash(soup)
             if cleaned_text_for_simhash:
                 current_page_simhash = self._compute_simhash(cleaned_text_for_simhash)
             else:
-                current_page_simhash = 0
+                # If no text is extracted for simhash, treat as potential duplicate or non-content page
+                logging.info(f"[SIMHASH_WARN] No significant text for simhash from {url}. Skipping to avoid processing empty content.")
+                skipped_duplicate_content += 1 # Count as a type of content skip
+                continue
 
             is_content_duplicate = False
             for existing_simhash in self.seen_simhashes:
@@ -267,9 +366,10 @@ class OfflineCrawler:
             self.seen_simhashes.add(current_page_simhash)
             self._save(self.path_to_simhashes, self.seen_simhashes)
 
-            tokens_for_indexing = preprocess_text(soup)
+            # Preprocess text for indexing
+            tokens_for_indexing = preprocess_text(soup) # Assuming preprocess_text is robust
             if not tokens_for_indexing:
-                logging.info(f"[LANG] Skipping {url} (non-English or no extractable text).")
+                logging.info(f"[LANG] Skipping {url} (non-English or no extractable text after preprocessing).")
                 skipped_non_english += 1
                 continue
 
@@ -282,6 +382,7 @@ class OfflineCrawler:
             processing_time = end_page_time - start_page_time
             logging.info(f"[SUCCESS] Processed {url} (Doc ID: {doc_id}) in {processing_time:.2f} seconds.")
 
+            # --- Link Extraction and Frontier Management ---
             if depth < self.max_depth:
                 current_page_text_for_scoring = self._get_cleaned_text_for_simhash(soup)
                 current_page_tokens_for_scoring = self._clean_for_scoring(current_page_text_for_scoring)
@@ -290,15 +391,19 @@ class OfflineCrawler:
                 for a in soup.find_all("a", href=True):
                     href = urljoin(url, a["href"])
                     href, _ = urldefrag(href)
-                    p = urlparse(href)
+                    
+                    # --- NEW/MODIFIED: Robust parsing of extracted href ---
+                    try:
+                        p = urlparse(href)
+                    except Exception as e:
+                        logging.warning(f"[LINK_PARSE_ERROR] Skipping malformed extracted link '{href}' from '{url}': {e}.")
+                        continue
 
                     if p.scheme in ("http", "https"):
                         # --- NEW: Immediate Filtering for new links ---
                         if self._is_blacklisted_ending(href):
-                            # logging.info(f"[BLACKLIST_OUT_ENDING] Not adding {href} due to blacklisted ending.")
                             continue # Skip adding this link
                         if p.netloc in self.blacklisted_domains:
-                            # logging.info(f"[BLACKLIST_OUT_DOMAIN] Not adding {href} due to blacklisted domain.")
                             continue # Skip adding this link
                         # --- END Immediate Filtering ---
 
@@ -319,14 +424,12 @@ class OfflineCrawler:
 
                             if new_priority != -float('inf'): # Only add if not effectively blacklisted by _calculate_priority
                                 heapq.heappush(self.frontier, (new_priority, href, depth + 1))
-                                self.visited_urls_in_queue.add(href) 
+                                self.visited_urls_in_queue.add(href)
                                 links_added_from_page += 1
                             else:
-                                # This log is handled by the early filtering for blacklisted urls
-                                pass
+                                pass # Logging for blacklisted URLs already done by _calculate_priority
                         else:
-                            # logging.info(f"[ROBOTS_OUT] Not adding {href} due to robots.txt rules.")
-                            pass
+                            pass # Logging for robots.txt disallow can be very verbose for all links
 
                 logging.info(f"[LINKS] Added {links_added_from_page} new links to frontier. Frontier size: {len(self.frontier)}.")
             else:
@@ -338,13 +441,18 @@ class OfflineCrawler:
         logging.info(f"Skipped as content duplicates (SimHash): {skipped_duplicate_content}")
         logging.info(f"Skipped as non-English or no text: {skipped_non_english}")
         logging.info(f"Skipped (already processed in previous run): {skipped_already_processed}")
-        logging.info(f"Skipped (blacklisted domain/ending): {skipped_blacklisted}") # NEW stat
+        logging.info(f"Skipped (blacklisted domain/ending): {skipped_blacklisted}")
+        logging.info(f"Skipped due to fetch/request errors: {skipped_fetch_errors}") # NEW stat
+        logging.info(f"Skipped due to HTML parsing errors: {skipped_parsing_errors}") # NEW stat
         logging.info(f"Remaining URLs in frontier (not crawled): {len(self.frontier)}")
 
         # Explicitly save frontier and visited_urls_in_queue on normal completion
         self._save(self.path_to_frontier, self.frontier)
         self._save(self.path_to_visited_urls_in_queue, self.visited_urls_in_queue)
-        logging.info("Frontier and visited URLs saved on completion.")
+        self._save(self.path_to_crawled_data, self.crawled_data)
+        self._save(self.path_to_simhashes, self.seen_simhashes)
+        logging.info("Frontier, visited URLs, crawled data, and simhashes saved on completion.")
+
 
     def _get_robot_parser(self, url):
         parsed_url = urlparse(url)
@@ -357,16 +465,19 @@ class OfflineCrawler:
 
             current_domain_delay = self.default_delay
 
+            # --- NEW/MODIFIED: Robust fetching for robots.txt ---
             try:
                 headers = {'User-Agent': self.user_agent}
-                # The problematic line: requests.get can raise errors related to encoding in redirects
-                response = requests.get(robot_url, headers=headers, timeout=5)
-                response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+                with requests.get(robot_url, headers=headers, timeout=5, stream=True) as response:
+                    response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
 
-                # If we get here, the request was successful and status code is good
-                # The previous UnicodeDecodeError was during redirect resolution,
-                # if it didn't crash, response.text should be fine now.
-                robot_content = response.text
+                    # Attempt to decode robots.txt content robustly
+                    try:
+                        robot_content = response.content.decode('utf-8')
+                    except UnicodeDecodeError:
+                        logging.warning(f"[ROBOTS_ENCODING_ERROR] UnicodeDecodeError for robots.txt of {domain}. Attempting ISO-8859-1 fallback.")
+                        robot_content = response.content.decode('iso-8859-1', errors='ignore') # Ignore errors for robots.txt
+
                 rp.parse(robot_content.splitlines())
                 logging.info(f"Successfully fetched and parsed robots.txt for {domain}")
 
@@ -379,39 +490,30 @@ class OfflineCrawler:
                     current_domain_delay = self.default_delay
 
             except requests.exceptions.HTTPError as e:
-                # Handle 4xx or 5xx errors specifically
+                # Handles 404 (robots.txt not found), 403 (forbidden), etc.
                 if e.response.status_code in (401, 403):
                     rp.disallow_all = True
                     logging.info(f"Access denied to robots.txt for {domain} (Status: {e.response.status_code}). Disallowing all.")
-                elif 400 <= e.response.status_code < 500:
-                    # 4xx errors (excluding 401/403) often mean robots.txt doesn't exist, implying allow all
+                elif 400 <= e.response.status_code < 500: # Includes 404
                     rp.allow_all = True
                     logging.info(f"robots.txt not found for {domain} (Status: {e.response.status_code}). Allowing all.")
-                else:
-                    # Other HTTP errors (e.g., 5xx server errors)
+                else: # Other HTTP errors (e.g., 5xx server errors)
                     rp.allow_all = True
                     logging.error(f"HTTP error fetching robots.txt for {domain} (Status: {e.response.status_code}): {e}. Allowing all.")
-            except requests.exceptions.ConnectionError as e:
-                # Handle network-related errors (DNS issues, connection refused, etc.)
-                logging.warning(f"Connection error fetching robots.txt for {domain}: {e}. Allowing all for this domain.")
-                rp.allow_all = True
-            except requests.exceptions.Timeout as e:
-                # Handle timeout errors
-                logging.warning(f"Timeout fetching robots.txt for {domain}: {e}. Allowing all for this domain.")
-                rp.allow_all = True
             except requests.exceptions.RequestException as e:
-                # This catches the UnicodeDecodeError and other general request exceptions
-                logging.warning(f"Failed to fetch or process robots.txt for {domain} due to: {e}. Allowing all for this domain.")
+                # This catches ConnectionError, Timeout, and any other general request-related issues
+                # including potentially a UnicodeDecodeError that might manifest differently.
+                logging.warning(f"Failed to fetch robots.txt for {domain} due to: {e}. Allowing all for this domain.")
                 rp.allow_all = True # Default to allowing all if there's any issue fetching/parsing robots.txt
             except Exception as e:
-                # Catch any other unexpected errors during robots.txt processing
+                # Catch any other unexpected errors during robots.txt processing (e.g., parsing issues if not from requests)
                 logging.error(f"An unexpected error occurred while processing robots.txt for {domain}: {e}. Allowing all for this domain.")
                 rp.allow_all = True
 
-
             self.robot_parsers[domain] = rp
             self.domain_delays[domain] = current_domain_delay
-            time.sleep(self.default_delay) # Still add a small delay to avoid hammering the server
+            # A small delay even after fetching robots.txt to avoid hammering
+            time.sleep(self.default_delay)
 
         return self.robot_parsers[domain]
 
@@ -486,33 +588,38 @@ class OfflineCrawler:
             return -score # heapq is a min-heap, so we negate for max-priority
         
     def _add_initial_seeds(self, seeds):
-            # A set to track seeds that have already been considered for initial addition in this run
-            processed_seeds_for_init = set() 
+        # A set to track seeds that have already been considered for initial addition in this run
+        processed_seeds_for_init = set() # This variable is not actually used in the loop, can be removed.
 
-            for url in seeds:
-                normalized_url, _ = urldefrag(urljoin(url, url))
-                
-                # Only add if not already processed in previous runs and not currently in the queue
-                if normalized_url not in self.url_to_doc_id and normalized_url not in self.visited_urls_in_queue:
-                    # Assign an extremely high priority to initial seeds at depth 0
-                    # A very large positive number, as we negate it for min-heap
-                    initial_seed_priority_score = 10000 
-                    
-                    # Check if this URL's domain is blacklisted, even for a seed, to avoid wasting time
+        for url in seeds:
+            normalized_url, _ = urldefrag(urljoin(url, url))
+
+            # Only add if not already processed in previous runs and not currently in the queue
+            if normalized_url not in self.url_to_doc_id and normalized_url not in self.visited_urls_in_queue:
+                # Assign an extremely high priority to initial seeds at depth 0
+                initial_seed_priority_score = 10000
+
+                # Check if this URL's domain is blacklisted, even for a seed, to avoid wasting time
+                # --- NEW/MODIFIED: Robust URL parsing for initial seeds ---
+                try:
                     parsed_url = urlparse(normalized_url)
-                    if parsed_url.netloc in self.blacklisted_domains or self._is_blacklisted_ending(normalized_url):
-                        logging.warning(f"[SEED_SKIP] Seed '{normalized_url}' domain/ending blacklisted. Skipping initial add.")
-                        continue
-                    
-                    # Check robots.txt for the seed URL before adding
-                    rp = self._get_robot_parser(normalized_url)
-                    if rp.can_fetch(self.user_agent, normalized_url):
-                        # Add to frontier with very high priority
-                        heapq.heappush(self.frontier, (-initial_seed_priority_score, normalized_url, 0))
-                        self.visited_urls_in_queue.add(normalized_url) 
-                        logging.info(f"[SEED_ADD] Added new seed to frontier: '{normalized_url}' (Priority: {initial_seed_priority_score}).")
-                    else:
-                        logging.info(f"[SEED_SKIP] Seed '{normalized_url}' disallowed by robots.txt.")
+                except Exception as e:
+                    logging.warning(f"[SEED_SKIP] Error parsing initial seed URL '{normalized_url}': {e}. Skipping.")
+                    continue
+
+                if parsed_url.netloc in self.blacklisted_domains or self._is_blacklisted_ending(normalized_url):
+                    logging.warning(f"[SEED_SKIP] Seed '{normalized_url}' domain/ending blacklisted. Skipping initial add.")
+                    continue
+
+                # Check robots.txt for the seed URL before adding
+                rp = self._get_robot_parser(normalized_url)
+                if rp.can_fetch(self.user_agent, normalized_url):
+                    # Add to frontier with very high priority
+                    heapq.heappush(self.frontier, (-initial_seed_priority_score, normalized_url, 0))
+                    self.visited_urls_in_queue.add(normalized_url)
+                    logging.info(f"[SEED_ADD] Added new seed to frontier: '{normalized_url}' (Priority: {initial_seed_priority_score}).")
+                else:
+                    logging.info(f"[SEED_SKIP] Seed '{normalized_url}' disallowed by robots.txt.")
 
     def _clean_for_scoring(self, text):
         """
@@ -597,11 +704,16 @@ class OfflineCrawler:
         with open(self.path_to_crawled_data, "wb") as f:
             pickle.dump(self.crawled_data, f)
 
-    # (generic save)
     def _save(self, path, data):
         """Generic save method for any pickleable data."""
-        with open(path, "wb") as f:
-            pickle.dump(data, f)
+        try:
+            with open(path, "wb") as f:
+                pickle.dump(data, f)
+            logging.info(f"Successfully saved data to {path}.")
+        except Exception as e:
+            # NEW/MODIFIED: Catch any error during saving
+            logging.error(f"Error saving data to {path}: {e}. Data might be lost!")
+
 
     # TODO these three methods should be unified
     def _save_all(self):
@@ -609,34 +721,64 @@ class OfflineCrawler:
             pickle.dump(self.crawled_data, f)
 
     def _load(self, path):
-            try:
-                with open(path, "rb") as f:
-                    data = pickle.load(f)
-                logging.info(f"Loaded existing data from {path}") # Log which path loaded
-                return data
-            except FileNotFoundError:
-                logging.warning(f"No previous data found for {path}. Initializing empty.") # MODIFIED: Unified warning message
-                if path == self.path_to_crawled_data:
-                    return {}
-                elif path == self.path_to_simhashes:
-                    return set()
-                # Handle new paths for frontier and visited_urls_in_queue
-                elif path == self.path_to_frontier:
-                    return [] # Frontier is a list (heapq)
-                elif path == self.path_to_visited_urls_in_queue:
-                    return set()
-                else:
-                    raise # If it's an unrecognized path, re-raise the error
+        """Generic load method for any pickleable data, with robust error handling."""
+        try:
+            with open(path, "rb") as f:
+                data = pickle.load(f)
+            logging.info(f"Loaded existing data from {path}")
+            return data
+        except FileNotFoundError:
+            logging.warning(f"No previous data found for {path}. Initializing empty.")
+            # NEW/MODIFIED: Ensure correct empty data structure is returned for each path
+            if path == self.path_to_crawled_data:
+                return {}
+            elif path == self.path_to_simhashes:
+                return set()
+            elif path == self.path_to_frontier:
+                return []
+            elif path == self.path_to_visited_urls_in_queue:
+                return set()
+            else:
+                logging.error(f"Attempted to load unrecognized path: {path}")
+                raise # Re-raise if path is not handled, indicating a logic error
+        except (pickle.UnpicklingError, EOFError) as e: # NEW/MODIFIED: Catch EOFError for truncated files
+            logging.error(f"Error unpickling data from {path}: {e}. Initializing empty data structures to prevent further errors.")
+            # Return appropriate empty structures to allow the crawler to continue
+            if path == self.path_to_crawled_data:
+                return {}
+            elif path == self.path_to_simhashes:
+                return set()
+            elif path == self.path_to_frontier:
+                return []
+            elif path == self.path_to_visited_urls_in_queue:
+                return set()
+            else:
+                raise # Re-raise if path is not handled
+        except Exception as e: # NEW/MODIFIED: Catch any other unexpected errors during loading
+            logging.error(f"An unexpected error occurred while loading data from {path}: {e}. Initializing empty data structures.")
+            # Return appropriate empty structures
+            if path == self.path_to_crawled_data:
+                return {}
+            elif path == self.path_to_simhashes:
+                return set()
+            elif path == self.path_to_frontier:
+                return []
+            elif path == self.path_to_visited_urls_in_queue:
+                return set()
+            else:
+                raise # Re-raise if path is not handled
 
     def _handle_interrupt(self, signum, frame):
-        logging.info("Interrupted! Saving current progress before exiting...")
-        # Explicitly save frontier and visited_urls_in_queue on interrupt
-        self._save(self.path_to_frontier, self.frontier)
-        self._save(self.path_to_visited_urls_in_queue, self.visited_urls_in_queue)
-        # Call original _save for crawled_data and simhashes to ensure they're saved
-        self._save(self.path_to_crawled_data, self.crawled_data)
-        self._save(self.path_to_simhashes, self.seen_simhashes)
-        logging.info("Frontier and visited URLs saved on interrupt.")
+        logging.info("\n[INTERRUPT] Ctrl+C detected. Saving state and shutting down gracefully...")
+        try:
+            # Use the robust _save method for all state saving
+            self._save(self.path_to_frontier, self.frontier)
+            self._save(self.path_to_visited_urls_in_queue, self.visited_urls_in_queue)
+            self._save(self.path_to_crawled_data, self.crawled_data)
+            self._save(self.path_to_simhashes, self.seen_simhashes)
+            logging.info("Crawler state saved successfully.")
+        except Exception as e:
+            logging.error(f"Error during graceful shutdown save: {e}. Data might be partially lost!")
         sys.exit(0)
 
     def _is_blacklisted_ending(self, url): # <--- THIS METHOD NEEDS TO BE INDENTED
@@ -648,73 +790,184 @@ class OfflineCrawler:
         return False
 
 if __name__ == "__main__":
-  
+    
     seeds = [
-        "https://visit-tubingen.co.uk/welcome-to-tubingen/",
+        # Official & Governmental
         "https://www.tuebingen.de/",
-        "https://uni-tuebingen.de/en/",
-        "https://en.wikipedia.org/wiki/T%C3%BCbingen",
-        "https://www.germany.travel/en/cities-culture/tuebingen.html",
-        "https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html",
-        "https://www.europeanbestdestinations.com/destinations/tubingen/",
         "https://www.tuebingen.de/en/",
-        "https://www.stadtmuseum-tuebingen.de/english/",
+        "https://www.tuebingen.de/en/wirtschaft.html",
         "https://www.tuebingen-info.de/",
-        "https://tuebingenresearchcampus.com/en/",
-        "https://www.welcome.uni-tuebingen.de/",
-        "https://integreat.app/tuebingen/en/news/tu-news",
-        "https://tunewsinternational.com/category/news-in-english/",
+        "https://www.germany.travel/en/cities-culture/tuebingen.html",
         "https://historicgermany.travel/historic-germany/tubingen/",
-        "https://visit-tubingen.co.uk/",
-        "https://www.germansights.com/tubingen/",
-        "https://www.tripadvisor.com/Restaurants-g198539-Tubingen_Baden_Wurttemberg.html",
-        "https://www.tripadvisor.com/Restaurants-g198539-zfp58-Tubingen_Baden_Wurttemberg.html",
+        "https://www.visit-bw.com/en/article/tubingen/df9223e2-70e5-4ee9-b3f2-cd2355ab8551",
+
+        # Academic & Research
+        "https://uni-tuebingen.de/en/",
+        "https://www.welcome.uni-tuebingen.de/",
+        "https://tuebingenresearchcampus.com/en/",
+        "https://www.mastersportal.com/universities/188/university-of-tbingen.html",
+        "https://www.expatrio.com/about-germany/eberhard-karls-universitat-tubingen",
+        "https://www.uni-tuebingen.de/en/faculties/",
+        "https://www.zmbp.uni-tuebingen.de/en/",
+        "https://www.nmi.de/en/",
+        "https://www.tuebingen.mpg.de/en/",
+        "https://www.hertie-institute.com/en/home/",
+        "https://www.cil-tuebingen.de/en/home/",
+        "https://cyber-valley.de/en/",
+        "https://tuebingen.ai/",
+
+        # Tourism & Travel Guides
+        "https://en.wikipedia.org/wiki/T%C3%BCbingen",
+        "https://en.wikivoyage.org/wiki/T%C3%BCbingen",
+        "https://www.tripadvisor.com/Attractions-g198539-Activities-Tubingen_Baden_Wurttemberg.html",
         "https://www.tripadvisor.com/Attractions-g198539-Activities-c36-Tubingen_Baden_Wurttemberg.html",
+        "https://www.tripadvisor.com/Attraction_Review-g198539-d14983273-Reviews-Tubingen_Weinwanderweg-Tubingen_Baden_Wurttemberg.html",
+        "https://www.europeanbestdestinations.com/destinations/tubingen/",
         "https://theculturetrip.com/europe/germany/articles/the-best-things-to-see-and-do-in-tubingen-germany",
         "https://www.mygermanyvacation.com/best-things-to-do-and-see-in-tubingen-germany/",
         "https://justinpluslauren.com/things-to-do-in-tubingen-germany/",
         "https://simplifylivelove.com/tubingen-germany/",
+        "https://www.expedia.com/Things-To-Do-In-Tubingen.d55289.Travel-Guide-Activities",
+        "https://www.lonelyplanet.com/germany/baden-wurttemberg/tubingen",
+        "https://www.minube.net/what-to-see/germany/baden-wurttemberg/tubingen",
+        "https://www.orangesmile.com/travelguide/tubingen/index.htm",
+        "https://www.try-travel.com/blog/europe/germany/tubingen/things-to-do-in-tubingen/",
+        "https://velvetescape.com/things-to-do-in-tubingen/",
+        "https://thedesigntourist.com/12-top-things-to-do-in-tubingen-germany/",
+        "https://globaltravelescapades.com/things-to-do-in-tubingen-germany/",
+        "https://thespicyjourney.com/magical-things-to-do-in-tubingen-in-one-day-tuebingen-germany-travel-guide/",
+        "https://veganfamilyadventures.com/15-best-things-to-do-in-tubingen-germany/",
+        "https://thetouristchecklist.com/things-to-do-in-tubingen/",
+        "https://visit-tubingen.co.uk/",
+        "https://visit-tubingen.co.uk/welcome-to-tubingen/",
+        "https://www.germansights.com/tubingen/",
+
+        # Local News & Community (English)
+        "https://integreat.app/tuebingen/en/news/tu-news",
+        "https://tunewsinternational.com/category/news-in-english/",
+        "https://www.reddit.com/r/Tuebingen/comments/1rhpyk/life_as_an_english_speaking_person_in_t%C3%BCbingen/",
+        "https://www.meetup.com/tubingen-meet-mingle/",
+        "https://www.internations.org/germany-expats/",
+
+        # Accommodation
+        "https://www.booking.com/city/de/tubingen.html",
+        "https://all.accor.com/a/en/destination/city/hotels-tubingen-v4084.html",
+        "https://www.hotel-am-schloss.de/en/",
+        "https://www.ibis.com/gb/hotel-3200-ibis-tuebingen/index.shtml",
+        "https://www.kronprinz-tuebingen.de/en/",
+
+        # Gastronomy
+        "https://www.tripadvisor.com/Restaurants-g198539-Tubingen_Baden_Wurttemberg.html",
+        "https://www.tripadvisor.com/Restaurants-g198539-zfp58-Tubingen_Baden_Wurttemberg.html",
+        "https://guide.michelin.com/en/baden-wurttemberg/tubingen/restaurants",
         "https://guide.michelin.com/us/en/baden-wurttemberg/tbingen/restaurants",
         "https://www.outdooractive.com/en/eat-and-drink/tuebingen/eat-and-drink-in-tuebingen/21873363/",
         "https://www.opentable.com/food-near-me/stadt-tubingen-germany",
-        "https://www.1821tuebingen.de/",
-        "https://www.historicgermany.travel/tuebingen/",
-        "https://www.expedia.com/Things-To-Do-In-Tubingen.d55289.Travel-Guide-Activities",
-        "https://www.lonelyplanet.com/germany/baden-wurttemberg/tubingen",
-        "https://www.tripadvisor.com/Attraction_Review-g198539-d14983273-Reviews-Tubingen_Weinwanderweg-Tubingen_Baden_Wurttemberg.html",
         "https://www.yelp.com/search?find_desc=Restaurants&find_loc=T%C3%BCbingen",
-        "https://guide.michelin.com/en/baden-wurttemberg/tubingen/restaurants",
-        "https://en.wikivoyage.org/wiki/T%C3%BCbingen",
+        "https://m.yelp.com/search?cflt=swabian&find_loc=T%C3%BCbingen%2C+Baden-W%C3%BCrttemberg",
+        "https://www.happycow.net/europe/germany/tubingen/",
+        "https://www.wurstkueche.com/en/restaurant-our-place/",
+        "https://www.1821tuebingen.de/",
+        "https://www.lacasa-tuebingen.de/en/index.php",
+        "https://www.restaurant-waldhorn.de/en/",
+        "https://www.maugan.de/en/",
         "https://en.wikivoyage.org/wiki/T%C3%BCbingen#Eat",
         "https://en.wikivoyage.org/wiki/T%C3%BCbingen#Drink",
-        "https://www.mygermanyvacation.com/things-to-do-in-tubingen/"
-    ]
 
-    seeds = ["https://www.germany.travel/de/staedte-kultur/tuebingen.html",
-    "https://www.stadtmuseum-tuebingen.de/english/",
-    "https://www.reddit.com/r/Tuebingen/comments/1rhpyk/life_as_an_english_speaking_person_in_t%C3%BCbingen/",
-    "https://historicgermany.travel/historic-germany/tubingen/",
-    "https://www.glassdoor.de/Job/t%C3%BCbingen-english-jobs-SRCH_IL.0,8_IC2689943_KO9,16.htm",
-    "https://www.visit-bw.com/en/article/tubingen/df9223e2-70e5-4ee9-b3f2-cd2355ab8551#/",
-    "https://www.tripadvisor.com/Restaurants-g198539-Tubingen_Baden_Wurttemberg.html",
-    "https://de.restaurantguru.com/Tubingen",
-    "https://www.thefork.com/restaurants/tubingen-c561333",
-    "https://www.outdooractive.com/en/places-to-eat-and-drink/tuebingen/eat-and-drink-in-tuebingen/21873363/",
-    "https://wanderlog.com/list/geoCategory/368520/",
-    "https://thetouristchecklist.com/things-to-do-in-tubingen/",
-    "https://thetouristchecklist.com/things-to-do-in-tubingen/",
-    "https://justinpluslauren.com/things-to-do-in-tubingen-germany/",
-    "https://theculturetrip.com/europe/germany/articles/the-best-things-to-see-and-do-in-tubingen-germany",
-    "https://velvetescape.com/things-to-do-in-tubingen/",
-    "https://thedesigntourist.com/12-top-things-to-do-in-tubingen-germany/",
-    "https://globaltravelescapades.com/things-to-do-in-tubingen-germany/",
-    "https://thespicyjourney.com/magical-things-to-do-in-tubingen-in-one-day-tuebingen-germany-travel-guide/",
-    "https://www.minube.net/what-to-see/germany/baden-wurttemberg/tubingen",
-    "https://veganfamilyadventures.com/15-best-things-to-do-in-tubingen-germany/",
-    "https://www.orangesmile.com/travelguide/tubingen/index.htm",
-    "https://www.try-travel.com/blog/europe/germany/tubingen/things-to-do-in-tubingen/",
-    "https://simplifylivelove.com/tubingen-germany/"]
-            
+        # Culture & Arts / Events
+        "https://www.stadtmuseum-tuebingen.de/english/",
+        "https://www.kunsthallentuebingen.de/en/",
+        "https://www.landestheater-tuebingen.de/en/home/",
+        "https://www.franzk.net/en/",
+        "https://www.kino-arsenal.de/",
+        "https://www.tuebinger-kultursommer.de/",
+        "https://www.tuebinger-stadtlauf.de/en/home/",
+        "https://rausgegangen.de/en/tubingen/",
+        "https://www.bandsintown.com/c/tuebingen-germany",
+        "https://www.eventbrite.com/d/germany--t%C3%BCbingen/english/",
+
+        # Outdoor & Recreation
+        "https://www.alltrails.com/germany/baden-wurttemberg/tubingen",
+        "https://www.outdooractive.com/en/city-walks/tuebingen/city-walks-in-tuebingen/8232815/",
+        "https://www.outdooractive.com/en/hiking-trails/tuebingen/hiking-in-tuebingen/1432855/",
+        "https://www.komoot.com/guide/881/hiking-around-landkreis-tuebingen",
+        "https://www.wikiloc.com/trails/hiking/germany/baden-wurttemberg/tubingen",
+
+        # Business & Local Economy
+        "https://www.hk-reutlingen.de/en/start/",
+
+        # Shopping & Commerce (New Category)
+        "https://tuebingenresearchcampus.com/en/tuebingen/living-in-tuebingen/shopping",
+        "https://www.tripadvisor.com/Attractions-g198539-Activities-c26-Tubingen_Baden_Wurttemberg.html",
+        "https://cityseeker.com/tuebingen-de/shopping",
+        "https://www.outdooractive.com/en/shoppings/tuebingen/shopping-in-tuebingen/21876964/",
+        "https://www.yelp.com/search?cflt=shopping&find_loc=T%C3%BCbingen%2C+Baden-W%C3%BCrttemberg",
+        "https://uni-tuebingen.de/international/studierende-aus-dem-ausland/erasmus-und-austausch-nach-tuebingen/studentisches-leben/tuebingen-basics-and-beyond/living-in-tuebingen/",
+        "https://uni-tuebingen.de/en/280707", # University shopping guide
+        "https://us.trip.com/travel-guide/shops/city-44519/",
+
+        # Transportation & Mobility (New Category)
+        "https://tuebingenresearchcampus.com/en/tuebingen/living-in-tuebingen/mobility/by-public-transport",
+        "https://www.bahnhof.de/en/tuebingen-hbf/parking-spaces",
+        "https://www.swtue.de/en/private-customer/parking.html", # Stadtwerke parking
+        "https://www.tripadvisor.com/ShowTopic-g198539-i4335-k5492275-How_can_I_use_the_bus_lines-Tubingen_Baden_Wurttemberg.html",
+        "https://tuebingen.ai/wiki/transportation-and-mobility",
+        "https://www.bahnhof.de/en/tuebingen-hbf/map",
+        "https://uni-tuebingen.de/en/university/how-to-get-here/",
+        "https://en.parkopedia.com/parking/t%C3%BCbingen/",
+        "https://www.tuebingen-info.de/en/service/vor-ort/mit-dem-auto",
+
+        # Health & Medical Services (New Category)
+        "https://www.uniklinik-tuebingen.de/en/",  # University Hospital
+        "https://tuebingenresearchcampus.com/en/tuebingen/living-in-tuebingen/healthcare",
+        "https://uni-tuebingen.de/en/280706", # University health services
+        "https://www.doctolib.de/city/tuebingen", # Doctor appointments (may have English interface)
+        "https://www.kliniksuche.de/city/tuebingen", # Clinic finder
+
+        # Real Estate & Housing (New Category)
+        "https://www.studenten-wg.de/city/tuebingen", # Student housing
+        "https://www.wg-gesucht.de/en/wg-zimmer-in-Tuebingen.125.0.1.0.html", # Room sharing
+        "https://www.immobilienscout24.de/Suche/de/baden-wuerttemberg/tuebingen", # Real estate
+        "https://tuebingenresearchcampus.com/en/tuebingen/living-in-tuebingen/housing",
+        "https://www.welcome.uni-tuebingen.de/housing/", # University housing info
+
+        # Education (Non-University) (New Category)
+        "https://www.goethe.de/ins/de/en/sta/tue.html", # Goethe Institute language school
+        "https://www.berlitz.com/locations/germany/tuebingen", # Language school
+        "https://tuebingenresearchcampus.com/en/tuebingen/living-in-tuebingen/language-courses",
+
+        # Services & Utilities (New Category)
+        "https://tuebingenresearchcampus.com/en/tuebingen/living-in-tuebingen/banking",
+        "https://tuebingenresearchcampus.com/en/tuebingen/living-in-tuebingen/internet-and-mobile",
+        "https://www.swtue.de/en/", # Stadtwerke utilities
+        "https://www.deutsche-post.de/en/branch-finder.html", # Deutsche Post offices
+
+        # Additional Quality Travel & Lifestyle Resources
+        "https://wanderlog.com/list/geoCategory/199488/where-to-eat-best-restaurants-in-tubingen",
+        "https://wanderlog.com/list/geoCategory/312176/best-spots-for-lunch-in-tubingen",
+        "https://www.timeout.com/germany/things-to-do/best-things-to-do-in-tubingen", # If available
+        "https://foursquare.com/explore?mode=url&ne=48.5346%2C9.0928&q=Top%20Picks&sw=48.5046%2C9.0428", # Tübingen area
+
+        # Community & Social (Enhanced)
+        "https://www.facebook.com/groups/tuebingenexpats/", # Expat Facebook group
+        "https://www.reddit.com/r/Tuebingen/",
+        "https://www.couchsurfing.com/places/europe/germany/tubingen", # Travel community
+        
+        # Additional Academic Resources
+        "https://www.daad.de/en/studying-in-germany/universities/university-profiles/uni-detail/1134/", # DAAD university profile
+        "https://www.studycheck.de/hochschulen/uni-tuebingen", # University reviews (may have English)
+        
+        # Sports & Recreation (Enhanced)
+        "https://www.sportzentrum.uni-tuebingen.de/en/", # University sports center
+        "https://www.outdooractive.com/en/swimming-pools/tuebingen/swimming-in-tuebingen/21875473/",
+        "https://www.outdooractive.com/en/fitness-centres/tuebingen/fitness-centres-in-tuebingen/21875484/",
+
+        # Additional Shopping & Local Business
+        "https://www.tuebingen.de/en/30471.html", # City's business directory if available
+        "https://www.gelbeseiten.de/s/t%C3%BCbingen", # Yellow pages (German but comprehensive)
+        "https://www.google.com/maps/search/shops+in+t%C3%BCbingen/", # Google Maps business listings
+    ]
+                    
 
     # Initialize the crawler
     # max_depth: How many layers deep the crawler will go. Start with 1 or 2 for testing.
