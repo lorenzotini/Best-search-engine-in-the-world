@@ -1,24 +1,60 @@
 from collections import defaultdict
 import pickle
 import math
-import os
+from sentence_transformers import SentenceTransformer
 
 
 class Indexer:
-    def __init__(self):
+    def __init__(self, silent=False):
         self.path_to_TFs = 'data/tfs.pkl'
         self.path_to_IDFs = 'data/idfs.pkl'
         self.path_to_crawled_data = 'data/crawled_data.pkl'
         self.path_to_posting_lists = 'data/posting_list.pkl'
+        self.path_to_embeddings='data/sbert_doc_embeddings.pkl'
         
-        self.crawled_data = self._load(self.path_to_crawled_data)
+        if not silent:
+            self.crawled_data = self._load(self.path_to_crawled_data)
+            
         self.skip_dict, self.pos_index_dict = self._load(self.path_to_posting_lists)
 
 
     def run(self):
+        print('Indexing...')
         self._index_documents()
+        print('Building Term frequencies...')
         self._build_TF()
+        print('Building Inverse Document frequencies...')
         self._build_IDF()
+        print("Precomputing doc embeddings.")
+        self._precompute_document_embeddings()
+        print("Indexer run done.")
+
+
+    def _precompute_document_embeddings(self, model_name='all-MiniLM-L6-v2'):
+        model = SentenceTransformer(model_name)
+
+        doc_texts = []
+        doc_ids = []
+
+        for doc_id, doc_data in self.crawled_data.items():
+            tokens = doc_data.get('tokens')
+            if tokens is None:
+                continue
+            text = " ".join(tokens)
+            doc_texts.append(text)
+            doc_ids.append(doc_id)
+
+        print(f"[INFO] Encoding {len(doc_texts)} documents with SBERT...")
+
+        embeddings = model.encode(doc_texts, convert_to_numpy=True, batch_size=16, show_progress_bar=True)
+
+        # Save as {doc_id: np.array}
+        doc_embeddings = {doc_id: emb for doc_id, emb in zip(doc_ids, embeddings)}
+
+        with open(self.path_to_embeddings, 'wb') as f:
+            pickle.dump(doc_embeddings, f)
+
+        print(f"[DONE] Saved to {self.path_to_embeddings}")
 
 
     def get_candidates(self, query, use_proximity=False, proximity_range=3):
@@ -181,14 +217,11 @@ class Indexer:
         return False
 
     def _index_documents(self):
-        print('Indexing...')
         self._build_skip_pointers(self.crawled_data)
         self._build_positional_index(self.crawled_data)
         
-        print("Saving posting lists...")
         with open(self.path_to_posting_lists, "wb") as f:
             pickle.dump((self.skip_dict, self.pos_index_dict), f)
-        print("Done.")
 
 
     def _build_skip_pointers(self, crawled_data):
@@ -277,11 +310,9 @@ class Indexer:
     def _build_IDF(self):
         idfs = {}
         D = len(self.crawled_data)
-        # TODO remove this printf after verified that it is correct
-        print("\nNumber of document in the corpus: ", D, "\ndelete this print pls\n")
         # Dts = {key: str, value: (Dt_value: int, seen_in_this_doc: bool)}
         Dts = {}
-        for doc_id, doc_data in self.crawled_data.items(): # TODO .items()?
+        for doc_id, doc_data in self.crawled_data.items():
             tokens = doc_data.get("tokens")
             # TODO fix this check
             if tokens is None:
