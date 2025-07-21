@@ -44,7 +44,6 @@ class BM25:
         return score
 
 
-
     def bm25_ranking(self, weighted_query, candidate_doc_ids):
         doc_lengths = self._compute_doc_lengths()
         avgdl = sum(doc_lengths) / len(doc_lengths)
@@ -54,18 +53,10 @@ class BM25:
 
         for doc_id in candidate_doc_ids:
             score = self._bm25_score(weighted_query, doc_id, doc_lengths, avgdl)
-
             bonus = ind.proximity_bonus([term for term, _ in weighted_query], doc_id, window=3)
             score += bonus
-
             scores.append((doc_id, score))
 
         scores = sorted(scores, key=lambda x: x[1], reverse=True)
-
-        ranked_urls = []
-        for doc_id, score in scores:
-            url = self.crawled_data[doc_id]["url"]
-            ranked_urls.append((url, score))
-
-        return ranked_urls
+        return scores   # Return (doc_id, score) pairs
 

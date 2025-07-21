@@ -117,7 +117,7 @@ def extract_description_from_soup(soup):
 
 def get_document_data(url, pipeline):
     try:
-        response = requests.get(url, timeout=0.2)
+        response = requests.get(url, timeout=0.5)
         response.raise_for_status()
     except requests.RequestException:
         return None
@@ -139,9 +139,9 @@ def get_document_data(url, pipeline):
     }
 
 
-def get_results(query, sentiment_pipeline, indexer, bm25_model, hybrid_model, sentiment_filter=None):
+def get_results(query, sentiment_pipeline, indexer, hybrid_model, sentiment_filter=None):
     start_time = time.time()
-    results_urls = search(query, indexer, bm25_model, hybrid_model, use_hybrid_model=True, use_query_expansion=True)
+    results_urls = search(query, indexer, hybrid_model, use_query_expansion=True)
 
     data = [get_document_data(url, sentiment_pipeline) for (url, score) in results_urls[:10]]  # Limit to first 2 URLs for demo
 
@@ -174,7 +174,7 @@ with app.app_context():
 def index():
 
     # Initialize models
-    indexer, bm25_model, hybrid_model, sentiment_pipeline = app.config["search_models"]
+    indexer, hybrid_model, sentiment_pipeline = app.config["search_models"]
 
     query = ""
     results = []
@@ -185,9 +185,9 @@ def index():
         sentiment_filter = request.form.get('sentiment_filter')
         if query:
             if sentiment_filter:
-                data, search_duration = get_results(query, sentiment_pipeline, indexer, bm25_model, hybrid_model, sentiment_filter)
+                data, search_duration = get_results(query, sentiment_pipeline, indexer, hybrid_model, sentiment_filter)
             else:
-                data, search_duration = get_results(query, sentiment_pipeline, indexer, bm25_model, hybrid_model)
+                data, search_duration = get_results(query, sentiment_pipeline, indexer, hybrid_model)
             results = data
 
     return render_template('index.html', query=query, results=results, sentiment_filter=sentiment_filter, search_duration=search_duration)
