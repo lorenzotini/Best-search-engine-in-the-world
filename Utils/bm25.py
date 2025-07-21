@@ -29,41 +29,34 @@ class BM25:
         return [sum(doc.values()) for doc in self.tf_data]
 
 
-    def _bm25_score(self, query, doc_index, doc_lengths, avgdl, k1=1.5, b=0.75):
+    def _bm25_score(self, weighted_query, doc_index, doc_lengths, avgdl, k1=1.5, b=0.75):
         score = 0.0
         doc_len = doc_lengths[doc_index]
-        for term in query:
+
+        for term, weight in weighted_query:
             tf = self.tf_data[doc_index].get(term.lower(), 0)
-            idf = self.idfs.get(term, 0)  # No smoothing yet
+            idf = self.idfs.get(term, 0)
+
             denom = tf + k1 * (1 - b + b * doc_len / avgdl)
             if denom > 0:
-                score += idf * ((tf * (k1 + 1)) / denom)
+                score += weight * idf * ((tf * (k1 + 1)) / denom) 
+
         return score
 
 
-    def bm25_ranking(self, query, candidate_doc_ids):
+    def bm25_ranking(self, weighted_query, candidate_doc_ids):
         doc_lengths = self._compute_doc_lengths()
         avgdl = sum(doc_lengths) / len(doc_lengths)
 
         scores = []
-        ind = Indexer()  # Use the indexer to access positional info
+        ind = Indexer()
 
         for doc_id in candidate_doc_ids:
-            score = self._bm25_score(query, doc_id, doc_lengths, avgdl)
-
-            # Proximity bonus
-            bonus = ind.proximity_bonus(query, doc_id, window=3)
-            score += bonus  # Add the bonus to the BM25 score
-
+            score = self._bm25_score(weighted_query, doc_id, doc_lengths, avgdl)
+            bonus = ind.proximity_bonus([term for term, _ in weighted_query], doc_id, window=3)
+            score += bonus
             scores.append((doc_id, score))
-        
-        # Sort by score descending
+
         scores = sorted(scores, key=lambda x: x[1], reverse=True)
+        return scores   # Return (doc_id, score) pairs
 
-        # Map doc IDs to URLs
-        ranked_urls = []
-        for doc_id, score in scores:
-            url = self.crawled_data[doc_id]["url"]
-            ranked_urls.append((url, score))
-
-        return ranked_urls

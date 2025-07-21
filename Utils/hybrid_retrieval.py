@@ -2,7 +2,6 @@ from sentence_transformers import SentenceTransformer, util
 import torch
 from Utils.bm25 import BM25
 from Utils.indexer import Indexer
-import pandas as pd
 import pickle
 
 
@@ -10,51 +9,56 @@ class HybridRetrieval:
     def __init__(self):
         self.bm25 = BM25()
         self.model = SentenceTransformer('all-MiniLM-L6-v2')  # Fast & accurate
-        self.indexer = Indexer()  # For tokenizing queries etc.
+        self.indexer = Indexer()
         with open('data/sbert_doc_embeddings.pkl', 'rb') as f:
-            self.doc_embeddings = pickle.load(f)  # {doc_id: tensor}
+            self.doc_embeddings = pickle.load(f)  # {doc_id: np.array}
 
-
-    def retrieve(self, query_tokens, candidate_doc_ids, top_k=50, lambda_bm25=0.5):
+    def retrieve(self, weighted_query, candidate_doc_ids, top_k=50, lambda_bm25=0.5):
         """
-        Perform two-stage retrieval: BM25 + SBERT re-ranking.
+        Perform hybrid retrieval: BM25 retrieval + SBERT re-ranking.
         """
 
-        bm25_results = self.bm25.bm25_ranking(query_tokens, candidate_doc_ids)
+        # BM25 retrieval (returns list of tuples: (doc_id, bm25_score))
+        bm25_results = self.bm25.bm25_ranking(weighted_query, candidate_doc_ids)
 
-        # Take top_k BM25 results
-        top_k_urls = bm25_results[:top_k]
+        # Keep only top_k BM25 results
+        top_k_results = bm25_results[:top_k]
 
-        # Prepare texts for semantic similarity
+        # Prepare the query for SBERT (repeat terms based on their weights)
+        query_text = " ".join([term for term, weight in weighted_query for _ in range(int(weight * 2))])
+        query_emb = self.model.encode(query_text, convert_to_tensor=True)
+
+        # Collect embeddings for top_k docs
         doc_ids = []
         corpus_emb = []
-        for doc_id in candidate_doc_ids:
+        for doc_id, bm25_score in top_k_results:
             if doc_id in self.doc_embeddings:
                 doc_ids.append(doc_id)
-                corpus_emb.append(self.doc_embeddings[doc_id])
+                emb = torch.from_numpy(self.doc_embeddings[doc_id]).to(query_emb.device)
+                corpus_emb.append(emb)
 
-        # SBERT encoding
-        query_text = " ".join(query_tokens)
-        query_emb = self.model.encode(query_text, convert_to_tensor=True)
-        
-        device = query_emb.device
-        corpus_emb = [torch.from_numpy(self.doc_embeddings[doc_id]).to(device) for doc_id in doc_ids]
+        if not corpus_emb:
+            # Return BM25 results with original BM25 scores
+            print("No embeddings found")
+            return [(self.bm25.crawled_data[doc_id]['url'], bm25_score) for doc_id, bm25_score in top_k_results]
+
         corpus_emb = torch.stack(corpus_emb)
 
-        # Compute cosine similarities
-        cosine_scores = util.cos_sim(query_emb, corpus_emb)[0]
-        
+        # Compute cosine similarity
+        cosine_scores = util.cos_sim(query_emb, corpus_emb)[0]  # shape: (len(doc_ids),)
 
-        # Combine BM25 and SBERT scores
+        # Hybrid scoring
         final_results = []
+        bm25_score_dict = {doc_id: score for doc_id, score in top_k_results}
+
         for idx, doc_id in enumerate(doc_ids):
             url = self.bm25.crawled_data[doc_id]['url']
-            bm25_score = top_k - idx  # Approximate rank-based BM25 score (normalize if needed)
+            bm25_score = bm25_score_dict.get(doc_id, 0)
             sbert_score = cosine_scores[idx].item()
             hybrid_score = lambda_bm25 * bm25_score + (1 - lambda_bm25) * sbert_score
             final_results.append((url, hybrid_score))
 
-        # Sort by hybrid score
-        final_results = sorted(final_results, key=lambda x: x[1], reverse=True)
+        # Sort by hybrid score descending
+        final_results.sort(key=lambda x: x[1], reverse=True)
 
         return final_results

@@ -1,6 +1,5 @@
 from Utils.legal_crawling import OfflineCrawler
 from Utils.indexer import Indexer
-from Utils.bm25 import BM25
 from Utils.hybrid_retrieval import HybridRetrieval
 from Utils.query_expander import QueryExpander
 from Utils.text_preprocessor import preprocess_text
@@ -9,9 +8,7 @@ from transformers import pipeline
 
 def search(query_text: str, 
            indexer: Indexer, 
-           bm25_model: BM25, 
            hybrid_model:HybridRetrieval, 
-           use_hybrid_model=False, 
            use_query_expansion=True):
     
     start = time.time()
@@ -22,28 +19,26 @@ def search(query_text: str,
     start = time.time()
     if use_query_expansion:
         print("\nExpanding query...\n")
-        expander = QueryExpander(max_synonyms=2)
-        expanded_tokens = expander.expand(query_tokens)
-        print("Expanded query tokens:", expanded_tokens)
+        expander = QueryExpander(max_synonyms=2, synonym_weight=0.25, original_weight=1.0)
+        weighted_tokens = expander.expand(query_tokens)
+        print("Expanded query tokens with weights:", weighted_tokens)
     else:
-        expanded_tokens = query_tokens
+        weighted_tokens = [(token, 1.0) for token in query_tokens]
+
     end = time.time()
     print("Time to expand query: ", end - start)
 
-    candidates_ids = indexer.get_union_candidates(expanded_tokens)
+    original_terms = [term for term, weight in weighted_tokens if weight >= 1.0]
+    candidates_ids = indexer.get_union_candidates(original_terms)
 
     print("candidate size = ", len(candidates_ids))
 
     if not candidates_ids:
         return []
     
+    print("\nUsing hybrid model...\n")
     start = time.time()
-    if use_hybrid_model:
-        print("\nUsing hybrid model...\n")
-        results = hybrid_model.retrieve(expanded_tokens, candidates_ids)
-    else:
-        print("\nUsing BM25 model...\n")
-        results = bm25_model.bm25_ranking(expanded_tokens, candidates_ids)
+    results = hybrid_model.retrieve(weighted_tokens, candidates_ids)
     end = time.time()
     print("Time to rank: ", end - start)
 
@@ -59,7 +54,6 @@ def initialize_crawling(seeds):
     #indexer.run()
 
     # print("Initializing models...")
-    # bm25_model = BM25()
     # hybrid_model = HybridRetrieval()
 
 
@@ -109,14 +103,13 @@ seeds = [
 ]
 
 
-# for r in search('food', ind, bm25, hybrid, use_hybrid_model=True, use_query_expansion=True)[:10]:
+# for r in search('food', ind, hybrid, use_query_expansion=True)[:10]:
 #     print(r)
 
 
 def init_search():
     indexer = Indexer()
-    bm25_model = BM25()
     hybrid_model = HybridRetrieval()
     sentiment_pipeline = pipeline("text-classification", model="GroNLP/mdebertav3-subjectivity-english", device=-1)
 
-    return indexer, bm25_model, hybrid_model, sentiment_pipeline
+    return indexer, hybrid_model, sentiment_pipeline

@@ -55,67 +55,6 @@ class Indexer:
             pickle.dump(doc_embeddings, f)
 
         print(f"[DONE] Saved to {self.path_to_embeddings}")
-
-
-    def get_candidates(self, query, use_proximity=False, proximity_range=3):
-            """
-            Get candidate document IDs for the given query.
-
-            Args:
-                query (list of str): List of query terms (already preprocessed)
-                use_proximity (bool): If True, use _intersect_range for positional constraints.
-                proximity_range (int): Max distance between terms if use_proximity is True.
-
-            Returns:
-                list of int: Candidate document IDs.
-            """
-            if not query:
-                return []
-
-            query = [term.lower() for term in query]  # Normalize
-
-            if use_proximity:
-                # Positional intersection (for phrase search / proximity search)
-                if query[0] not in self.pos_index_dict:
-                    return []
-
-                candidates = self.pos_index_dict[query[0]]
-                
-                for term in query[1:]:
-                    if term not in self.pos_index_dict:
-                        return []
-                    candidates = self._intersect_range(candidates, self.pos_index_dict[term], proximity_range)
-                    # After first iteration, candidates becomes a list of docIDs only
-                    # For further _intersect_range calls, we need to reconstruct position lists
-                    if not candidates:
-                        return []
-                    candidates = [
-                        [doc_id, [pos for pos in self.pos_index_dict[term] if pos[0] == doc_id][0][1]]
-                        for doc_id in candidates
-                    ]
-                
-                return [doc_id for doc_id, _ in candidates]
-
-            else:
-                # Standard AND search using skip pointers
-                if query[0] not in self.skip_dict:
-                    return []
-
-                candidates = self.skip_dict[query[0]]
-
-                for term in query[1:]:
-                    if term not in self.skip_dict:
-                        return []
-                    candidates = self._intersect_skip(candidates, self.skip_dict[term])
-                    if not candidates:
-                        return []
-
-                    # After _intersect_skip, candidates is a list of docIDs
-                    # For the next iteration, convert back to [docID, skip_index, docID_at_skip]
-                    # But since we don't have skip pointers anymore, wrap it without skips
-                    candidates = [[doc_id, None, None] for doc_id in candidates]
-
-                return [entry[0] for entry in candidates]
             
 
     def get_union_candidates(self, query):
@@ -134,6 +73,7 @@ class Indexer:
                 ids = [entry[0] for entry in postings]
                 candidate_ids.update(ids)
         return list(candidate_ids)
+
 
     def proximity_bonus(self, query, doc_id, window=3):
         """
@@ -232,7 +172,6 @@ class Indexer:
         for doc_id, doc_data in crawled_data.items():
             tokens = doc_data.get("tokens")
             
-            # TODO fix this check
             if tokens is None:
                 continue
 
@@ -274,7 +213,6 @@ class Indexer:
 
         for doc_id, doc_data in crawled_data.items():
             tokens = doc_data.get("tokens")
-            # TODO fix this check
             if tokens is None:
                 continue
             for position, token in enumerate(tokens):
@@ -294,7 +232,6 @@ class Indexer:
             # build term-frequency dictionary
             bow = {}
             tokens = doc_data.get("tokens")
-            # TODO fix this check
             if tokens is None:
                 continue
             for word in tokens:
@@ -314,7 +251,6 @@ class Indexer:
         Dts = {}
         for doc_id, doc_data in self.crawled_data.items():
             tokens = doc_data.get("tokens")
-            # TODO fix this check
             if tokens is None:
                 continue
             # Reset visited values, since we are visiting a new document
