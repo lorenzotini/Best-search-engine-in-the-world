@@ -22,15 +22,17 @@ def search(query_text: str,
     start = time.time()
     if use_query_expansion:
         print("\nExpanding query...\n")
-        expander = QueryExpander(max_synonyms=2)
-        expanded_tokens = expander.expand(query_tokens)
-        print("Expanded query tokens:", expanded_tokens)
+        expander = QueryExpander(max_synonyms=2, synonym_weight=0.25, original_weight=1.0)
+        weighted_tokens = expander.expand(query_tokens)
+        print("Expanded query tokens with weights:", weighted_tokens)
     else:
-        expanded_tokens = query_tokens
+        weighted_tokens = [(token, 1.0) for token in query_tokens]
+
     end = time.time()
     print("Time to expand query: ", end - start)
 
-    candidates_ids = indexer.get_union_candidates(expanded_tokens)
+    original_terms = [term for term, weight in weighted_tokens if weight >= 1.0]
+    candidates_ids = indexer.get_union_candidates(original_terms)
 
     print("candidate size = ", len(candidates_ids))
 
@@ -40,10 +42,10 @@ def search(query_text: str,
     start = time.time()
     if use_hybrid_model:
         print("\nUsing hybrid model...\n")
-        results = hybrid_model.retrieve(expanded_tokens, candidates_ids)
+        results = hybrid_model.retrieve(weighted_tokens, candidates_ids)
     else:
         print("\nUsing BM25 model...\n")
-        results = bm25_model.bm25_ranking(expanded_tokens, candidates_ids)
+        results = bm25_model.bm25_ranking(weighted_tokens, candidates_ids)
     end = time.time()
     print("Time to rank: ", end - start)
 
