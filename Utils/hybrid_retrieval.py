@@ -15,12 +15,13 @@ class HybridRetrieval:
             self.doc_embeddings = pickle.load(f)  # {doc_id: tensor}
 
 
-    def retrieve(self, query_tokens, candidate_doc_ids, top_k=50, lambda_bm25=0.5):
+    def retrieve(self, weighted_query, candidate_doc_ids, top_k=50, lambda_bm25=0.5):
         """
         Perform two-stage retrieval: BM25 + SBERT re-ranking.
         """
 
-        bm25_results = self.bm25.bm25_ranking(query_tokens, candidate_doc_ids)
+        bm25_results = self.bm25.bm25_ranking(weighted_query, candidate_doc_ids)
+
 
         # Take top_k BM25 results
         top_k_urls = bm25_results[:top_k]
@@ -34,7 +35,7 @@ class HybridRetrieval:
                 corpus_emb.append(self.doc_embeddings[doc_id])
 
         # SBERT encoding
-        query_text = " ".join(query_tokens)
+        query_text = " ".join([term for term, weight in weighted_query for _ in range(int(weight * 2))])
         query_emb = self.model.encode(query_text, convert_to_tensor=True)
         
         device = query_emb.device
