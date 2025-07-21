@@ -15,8 +15,6 @@ try:
 except LookupError:
     nltk.download("stopwords")
 
-
-# TODO ensure pos tag is downloaded
 try:
     pos_tag([""])
 except LookupError:
@@ -41,9 +39,6 @@ def get_wordnet_pos(tag):
         return wordnet.NOUN  # Default to noun
     
 
-# TODO this function is taken mostly from crawling preprocessing function.
-# i dont know if we should keep stopwords (think about negations in a query)
-# or keep other information
 def preprocess_text(text: str, isQuery=False):
     
     if not isQuery:
@@ -64,7 +59,6 @@ def preprocess_text(text: str, isQuery=False):
             return None # Return None to indicate this page should be skipped for indexing
     else:
         # It is a query, so add tuebingen token to make related content more relevant
-        # TODO how should we write tubingen? with ü or ue?
         text += " Tuebingen"
     
     text = text.lower()
