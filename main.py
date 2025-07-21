@@ -112,5 +112,5 @@ seeds = [
 
 ind, bm25, hybrid, = initialize(seeds)
 
-for r in search('food', ind, bm25, hybrid, use_hybrid_model=True, use_query_expansion=True)[:10]:
-    print(r)
+# for r in search('food', ind, bm25, hybrid, use_hybrid_model=True, use_query_expansion=True)[:10]:
+#     print(r)

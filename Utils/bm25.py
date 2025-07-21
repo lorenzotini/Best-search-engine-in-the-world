@@ -64,6 +64,6 @@ class BM25:
         ranked_urls = []
         for doc_id, score in scores:
             url = self.crawled_data[doc_id]["url"]
-            ranked_urls.append(url)
+            ranked_urls.append((url, score))
 
         return ranked_urls

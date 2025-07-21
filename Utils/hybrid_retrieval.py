@@ -57,4 +57,4 @@ class HybridRetrieval:
         # Sort by hybrid score
         final_results = sorted(final_results, key=lambda x: x[1], reverse=True)
 
-        return [url for url, score in final_results]
+        return final_results
