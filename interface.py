@@ -1,49 +1,42 @@
-# Flask version of your Streamlit app
-
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request
 import requests
 from bs4 import BeautifulSoup
 from main import search, init_search
-import numpy as np
-from transformers import pipeline
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
+# from nltk.tokenize import word_tokenize
+import time
 import re
 from concurrent.futures import ThreadPoolExecutor
-import time
+import random
 
 app = Flask(__name__)
 
 # ---------------- Helper Functions ----------------
 
-def document_sentiment_analysis_binary(data : list[str], pipeline, seed= 0, random_aprox=False):
+def document_sentiment_analysis_binary(data: list[str], pipeline, seed=0, random_aprox=False):
+    # Optional approximation using random chunks
+    if random_aprox or len(data) > 8:
+        random.seed(seed)
+        if len(data) > 10:
+            data = random.sample(data, 10)
 
-    doc_analysis = {}
-
-    if random_aprox:
-
-        np.random.seed(seed)
-        # natural random numbers for testing
-        random_scores = np.unique(np.random.randint(0, len(data), 10))
-        data = [data[i] for i in random_scores]
-
+    # Run the sentiment pipeline (batched)
     analysis = pipeline(data)
 
-    if analysis["label" == "LABEL_0"] != None:
-        doc_analysis["objective"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "LABEL_0" ]) / len(analysis)
+    # Group scores by label
+    objective_scores = [entry["score"] for entry in analysis if entry["label"] == "LABEL_0"]
+    subjective_scores = [entry["score"] for entry in analysis if entry["label"] == "LABEL_1"]
+
+    # Calculate average scores
+    avg_objective = sum(objective_scores) / len(objective_scores) if objective_scores else 0
+    avg_subjective = sum(subjective_scores) / len(subjective_scores) if subjective_scores else 0
+
+    # Determine dominant label
+    if avg_subjective >= avg_objective:
+        return {"label": "subjective", "score": avg_subjective}
     else:
-        doc_analysis["objective"] = 0
+        return {"label": "objective", "score": avg_objective}
 
-    if analysis["label" == "LABEL_1"] != None:
-        doc_analysis["subjective"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "LABEL_1" ])  / len(analysis)
-    else:
-        doc_analysis["subjective"] = 0
 
-    max_key = max(doc_analysis.items(), key=lambda item: item[1])[0]
-    max_value = doc_analysis[max_key]
-
-    return {"label": max_key, "score": max_value}
 
 def preprocess_text(text: str, chunk_size: int = 250):
     # # Ensure stopwords are available
@@ -55,7 +48,8 @@ def preprocess_text(text: str, chunk_size: int = 250):
     text = re.sub(r"\s+", " ", text).strip()
 
     # Tokenize
-    tokens = word_tokenize(text)
+    # tokens = word_tokenize(text)
+    tokens = text.split()
 
     document = [' '.join(tokens[i:i+chunk_size]) for i in range(0, len(tokens), chunk_size)]
 
@@ -115,9 +109,9 @@ def extract_description_from_soup(soup):
 
     return "No description available."
 
-def get_document_data(url, pipeline):
+def get_document_data(url, pipeline, session):
     try:
-        response = requests.get(url, timeout=0.2)
+        response = session.get(url, timeout=0.2)
         response.raise_for_status()
     except requests.RequestException:
         return None
@@ -128,7 +122,7 @@ def get_document_data(url, pipeline):
     description = extract_description_from_soup(soup)
 
     text = preprocess_text(soup.get_text(separator=" ", strip=True))
-    sentiment_analy = document_sentiment_analysis_binary(text, pipeline, seed=0, random_aprox=True)
+    sentiment_analy = document_sentiment_analysis_binary(text, pipeline, seed=0, random_aprox=False)
 
     return {
         "title": str(title),
@@ -143,11 +137,22 @@ def get_results(query, sentiment_pipeline, indexer, bm25_model, hybrid_model, se
     start_time = time.time()
     results_urls = search(query, indexer, bm25_model, hybrid_model, use_hybrid_model=True, use_query_expansion=True)
 
-    data = [get_document_data(url, sentiment_pipeline) for (url, score) in results_urls[:10]]  # Limit to first 2 URLs for demo
+    start_recrawling_time = time.time()
+    # data = [get_document_data(url, sentiment_pipeline) for (url, score) in results_urls[:10]]
+
+    session = requests.Session()
+
+    def process_url(pair):
+        url, _ = pair
+        return get_document_data(url, sentiment_pipeline, session)
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        data = list(executor.map(process_url, results_urls[:10]))
 
     # Remove None results (failed requests)
     data = [result for result in data if result is not None]
-
+    end_recrawling_time = time.time()
+    print(f"Re-crawling took {end_recrawling_time - start_recrawling_time:.2f} seconds")
     # sentiment filter
     if sentiment_filter:
         data = [result for result in data if result['sentiment'] == sentiment_filter]

@@ -117,6 +117,6 @@ def init_search():
     indexer = Indexer()
     bm25_model = BM25()
     hybrid_model = HybridRetrieval()
-    sentiment_pipeline = pipeline("text-classification", model="GroNLP/mdebertav3-subjectivity-english")
+    sentiment_pipeline = pipeline("text-classification", model="GroNLP/mdebertav3-subjectivity-english", device=-1)
 
     return indexer, bm25_model, hybrid_model, sentiment_pipeline

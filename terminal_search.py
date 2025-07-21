@@ -1,7 +1,11 @@
 # This document is to test the search functionality in the terminal by inputting a txt file with multiple queries.
 import argparse
-from main import search_wrapper
+from main import search, init_search
+import time
 
+indexer, bm25_model, hybrid_model, sentiment_pipeline = init_search()
+
+start = time.time()
 
 parser = argparse.ArgumentParser(
     prog="search.py",
@@ -22,9 +26,12 @@ print("Loaded queries:", queries)
 
 results = []
 
+end = time.time()
+
+print(f"Time to load queries: {end - start:.2f} seconds")
 for query in queries:
     print(f"Searching for query: {query}")
-    results_query = search_wrapper(query)
+    results_query = search(query, indexer, bm25_model, hybrid_model, use_hybrid_model=True, use_query_expansion=True)
     results.append({
         'query': query,
         'results': [{'url': entry[0], 'score': entry[1]} for entry in results_query[:10]]})
