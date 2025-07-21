@@ -3,7 +3,7 @@
 from flask import Flask, render_template, request, send_file
 import requests
 from bs4 import BeautifulSoup
-from main import search
+from main import search, init_search
 import numpy as np
 from transformers import pipeline
 from nltk.tokenize import word_tokenize
@@ -11,6 +11,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 import re
 from concurrent.futures import ThreadPoolExecutor
+import time
 
 app = Flask(__name__)
 
@@ -29,19 +30,15 @@ def document_sentiment_analysis_binary(data : list[str], pipeline, seed= 0, rand
 
     analysis = pipeline(data)
 
-    if analysis["label" == "NEGATIVE"] != None:
-        doc_analysis["negative"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "NEGATIVE" ]) / len(analysis)
+    if analysis["label" == "LABEL_0"] != None:
+        doc_analysis["objective"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "LABEL_0" ]) / len(analysis)
     else:
-        doc_analysis["negative"] = 0
-        
-    if analysis["label" == "NEUTRAL"] != None:
-        doc_analysis["neutral"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "neutral" ]) / len(analysis)
+        doc_analysis["objective"] = 0
+
+    if analysis["label" == "LABEL_1"] != None:
+        doc_analysis["subjective"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "LABEL_1" ])  / len(analysis)
     else:
-        doc_analysis["negative"] = 0
-    if analysis["label" == "POSITIVE"] != None:
-        doc_analysis["positive"] = np.sum([doc_analysis["score"] for doc_analysis in analysis if doc_analysis["label"] == "POSITIVE" ])  / len(analysis)
-    else:
-        doc_analysis["positive"] = 0
+        doc_analysis["subjective"] = 0
 
     max_key = max(doc_analysis.items(), key=lambda item: item[1])[0]
     max_value = doc_analysis[max_key]
@@ -142,13 +139,11 @@ def get_document_data(url, pipeline):
     }
 
 
-def get_results(query, sentiment_filter=None):
-    results_urls = search(query)
+def get_results(query, sentiment_pipeline, indexer, bm25_model, hybrid_model, sentiment_filter=None):
+    start_time = time.time()
+    results_urls = search(query, indexer, bm25_model, hybrid_model, use_hybrid_model=True, use_query_expansion=True)
 
-    # get sentiment analysis pipeline   
-    sentiment_pipeline = pipeline("sentiment-analysis")
-
-    data = [get_document_data(url, sentiment_pipeline) for url in results_urls[:10]]  # Limit to first 2 URLs for demo
+    data = [get_document_data(url, sentiment_pipeline) for (url, score) in results_urls[:10]]  # Limit to first 2 URLs for demo
 
     # Remove None results (failed requests)
     data = [result for result in data if result is not None]
@@ -157,31 +152,49 @@ def get_results(query, sentiment_filter=None):
     if sentiment_filter:
         data = [result for result in data if result['sentiment'] == sentiment_filter]
 
-    return data
+    end_time = time.time()  # End timer
+    search_duration = round(end_time - start_time,2)
+    print(f"Search took {search_duration:.2f} seconds")  # Print or log the duration
+
+    return data, search_duration
 
 # ---------------- Routes ----------------
 
+indexer = None
+bm25_model = None
+hybrid_model = None
+sentiment_pipeline= None
+
+with app.app_context():
+    app.config["search_models"] = init_search()
+    print("Search engine initialized with models.")
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
+
+    # Initialize models
+    indexer, bm25_model, hybrid_model, sentiment_pipeline = app.config["search_models"]
+
     query = ""
     results = []
     sentiment_filter = ""
+    search_duration = ""
     if request.method == 'POST':
         query = request.form.get('query')
         sentiment_filter = request.form.get('sentiment_filter')
         if query:
             if sentiment_filter:
-                mock_data = get_results(query, sentiment_filter)
+                data, search_duration = get_results(query, sentiment_pipeline, indexer, bm25_model, hybrid_model, sentiment_filter)
             else:
-                mock_data = get_results(query)
-            results = mock_data
+                data, search_duration = get_results(query, sentiment_pipeline, indexer, bm25_model, hybrid_model)
+            results = data
 
-    return render_template('index.html', query=query, results=results, sentiment_filter=sentiment_filter)
-
-
+    return render_template('index.html', query=query, results=results, sentiment_filter=sentiment_filter, search_duration=search_duration)
 
 
 # ---------------- Run App ----------------
 
 if __name__ == '__main__':
-    app.run(debug=True)
+
+    app.run(debug=False)

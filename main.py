@@ -5,7 +5,7 @@ from Utils.hybrid_retrieval import HybridRetrieval
 from Utils.query_expander import QueryExpander
 from Utils.text_preprocessor import preprocess_text
 import time
-
+from transformers import pipeline
 
 def search(query_text: str, 
            indexer: Indexer, 
@@ -49,20 +49,18 @@ def search(query_text: str,
 
     return results
 
-def initialize(seeds):
-    #print("Crawling...")
-    #crawler = OfflineCrawler(seeds, max_depth=2)
-    #crawler.run()
+def initialize_crawling(seeds):
+    print("Crawling...")
+    crawler = OfflineCrawler(seeds, max_depth=2)
+    crawler.run()
     
     #print("Indexing...")
-    indexer = Indexer()
+    # indexer = Indexer()
     #indexer.run()
 
-    print("Initializing models...")
-    bm25_model = BM25()
-    hybrid_model = HybridRetrieval()
-
-    return indexer, bm25_model, hybrid_model
+    # print("Initializing models...")
+    # bm25_model = BM25()
+    # hybrid_model = HybridRetrieval()
 
 
 seeds = [
@@ -110,7 +108,15 @@ seeds = [
     "https://www.mygermanyvacation.com/things-to-do-in-tubingen/"
 ]
 
-ind, bm25, hybrid, = initialize(seeds)
 
 # for r in search('food', ind, bm25, hybrid, use_hybrid_model=True, use_query_expansion=True)[:10]:
 #     print(r)
+
+
+def init_search():
+    indexer = Indexer()
+    bm25_model = BM25()
+    hybrid_model = HybridRetrieval()
+    sentiment_pipeline = pipeline("text-classification", model="GroNLP/mdebertav3-subjectivity-english")
+
+    return indexer, bm25_model, hybrid_model, sentiment_pipeline

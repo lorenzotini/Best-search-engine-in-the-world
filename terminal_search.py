@@ -1,6 +1,6 @@
 # This document is to test the search functionality in the terminal by inputting a txt file with multiple queries.
 import argparse
-from main import search
+from main import search_wrapper
 
 
 parser = argparse.ArgumentParser(
@@ -24,21 +24,17 @@ results = []
 
 for query in queries:
     print(f"Searching for query: {query}")
-    results = search(query)
-    for entry in results:
-        entry['query'] = query
-        entry['score'] = entry.get('score', 0)
+    results_query = search_wrapper(query)
     results.append({
         'query': query,
-        'score': results[0]['score'] if results else 0,
-        'results': [entry['url'] for entry in results]
-    })
-
+        'results': [{'url': entry[0], 'score': entry[1]} for entry in results_query[:10]]})
+    
 for entry in results:
-    print("\n==============================")
+    print("\n============================================================")
     print(f"Query: {entry['query']}")
-    print(f"Top Score: {entry['score']}")
     print("Results:")
-    for i, url in enumerate(entry['results'], 1):
-        print(f"  {i}. {url}")
-print("\n==============================")
+    print(f"{'URL':<100} {'SCORE':>10}")
+    print("-" * 72)
+    for result in entry['results']:
+        print(f"{result['url']:<100} {result['score']:>10}")
+print("\n============================================================")
