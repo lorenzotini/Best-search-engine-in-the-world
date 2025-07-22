@@ -1,85 +1,60 @@
 from collections import defaultdict
 import pickle
 import math
-import os
+from sentence_transformers import SentenceTransformer
 
 
 class Indexer:
-    def __init__(self):
+    def __init__(self, silent=False):
         self.path_to_TFs = 'data/tfs.pkl'
         self.path_to_IDFs = 'data/idfs.pkl'
         self.path_to_crawled_data = 'data/crawled_data.pkl'
         self.path_to_posting_lists = 'data/posting_list.pkl'
+        self.path_to_embeddings='data/sbert_doc_embeddings.pkl'
         
-        self.crawled_data = self._load(self.path_to_crawled_data)
+        if not silent:
+            self.crawled_data = self._load(self.path_to_crawled_data)
+            
         self.skip_dict, self.pos_index_dict = self._load(self.path_to_posting_lists)
 
 
     def run(self):
+        print('Indexing...')
         self._index_documents()
+        print('Building Term frequencies...')
         self._build_TF()
+        print('Building Inverse Document frequencies...')
         self._build_IDF()
+        print("Precomputing doc embeddings.")
+        self._precompute_document_embeddings()
+        print("Indexer run done.")
 
 
-    def get_candidates(self, query, use_proximity=False, proximity_range=3):
-            """
-            Get candidate document IDs for the given query.
+    def _precompute_document_embeddings(self, model_name='all-MiniLM-L6-v2'):
+        model = SentenceTransformer(model_name)
 
-            Args:
-                query (list of str): List of query terms (already preprocessed)
-                use_proximity (bool): If True, use _intersect_range for positional constraints.
-                proximity_range (int): Max distance between terms if use_proximity is True.
+        doc_texts = []
+        doc_ids = []
 
-            Returns:
-                list of int: Candidate document IDs.
-            """
-            if not query:
-                return []
+        for doc_id, doc_data in self.crawled_data.items():
+            tokens = doc_data.get('tokens')
+            if tokens is None:
+                continue
+            text = " ".join(tokens)
+            doc_texts.append(text)
+            doc_ids.append(doc_id)
 
-            query = [term.lower() for term in query]  # Normalize
+        print(f"[INFO] Encoding {len(doc_texts)} documents with SBERT...")
 
-            if use_proximity:
-                # Positional intersection (for phrase search / proximity search)
-                if query[0] not in self.pos_index_dict:
-                    return []
+        embeddings = model.encode(doc_texts, convert_to_numpy=True, batch_size=16, show_progress_bar=True)
 
-                candidates = self.pos_index_dict[query[0]]
-                
-                for term in query[1:]:
-                    if term not in self.pos_index_dict:
-                        return []
-                    candidates = self._intersect_range(candidates, self.pos_index_dict[term], proximity_range)
-                    # After first iteration, candidates becomes a list of docIDs only
-                    # For further _intersect_range calls, we need to reconstruct position lists
-                    if not candidates:
-                        return []
-                    candidates = [
-                        [doc_id, [pos for pos in self.pos_index_dict[term] if pos[0] == doc_id][0][1]]
-                        for doc_id in candidates
-                    ]
-                
-                return [doc_id for doc_id, _ in candidates]
+        # Save as {doc_id: np.array}
+        doc_embeddings = {doc_id: emb for doc_id, emb in zip(doc_ids, embeddings)}
 
-            else:
-                # Standard AND search using skip pointers
-                if query[0] not in self.skip_dict:
-                    return []
+        with open(self.path_to_embeddings, 'wb') as f:
+            pickle.dump(doc_embeddings, f)
 
-                candidates = self.skip_dict[query[0]]
-
-                for term in query[1:]:
-                    if term not in self.skip_dict:
-                        return []
-                    candidates = self._intersect_skip(candidates, self.skip_dict[term])
-                    if not candidates:
-                        return []
-
-                    # After _intersect_skip, candidates is a list of docIDs
-                    # For the next iteration, convert back to [docID, skip_index, docID_at_skip]
-                    # But since we don't have skip pointers anymore, wrap it without skips
-                    candidates = [[doc_id, None, None] for doc_id in candidates]
-
-                return [entry[0] for entry in candidates]
+        print(f"[DONE] Saved to {self.path_to_embeddings}")
             
 
     def get_union_candidates(self, query):
@@ -98,6 +73,7 @@ class Indexer:
                 ids = [entry[0] for entry in postings]
                 candidate_ids.update(ids)
         return list(candidate_ids)
+
 
     def proximity_bonus(self, query, doc_id, window=3):
         """
@@ -181,14 +157,11 @@ class Indexer:
         return False
 
     def _index_documents(self):
-        print('Indexing...')
         self._build_skip_pointers(self.crawled_data)
         self._build_positional_index(self.crawled_data)
         
-        print("Saving posting lists...")
         with open(self.path_to_posting_lists, "wb") as f:
             pickle.dump((self.skip_dict, self.pos_index_dict), f)
-        print("Done.")
 
 
     def _build_skip_pointers(self, crawled_data):
@@ -199,7 +172,6 @@ class Indexer:
         for doc_id, doc_data in crawled_data.items():
             tokens = doc_data.get("tokens")
             
-            # TODO fix this check
             if tokens is None:
                 continue
 
@@ -241,7 +213,6 @@ class Indexer:
 
         for doc_id, doc_data in crawled_data.items():
             tokens = doc_data.get("tokens")
-            # TODO fix this check
             if tokens is None:
                 continue
             for position, token in enumerate(tokens):
@@ -261,7 +232,6 @@ class Indexer:
             # build term-frequency dictionary
             bow = {}
             tokens = doc_data.get("tokens")
-            # TODO fix this check
             if tokens is None:
                 continue
             for word in tokens:
@@ -277,13 +247,10 @@ class Indexer:
     def _build_IDF(self):
         idfs = {}
         D = len(self.crawled_data)
-        # TODO remove this printf after verified that it is correct
-        print("\nNumber of document in the corpus: ", D, "\ndelete this print pls\n")
         # Dts = {key: str, value: (Dt_value: int, seen_in_this_doc: bool)}
         Dts = {}
-        for doc_id, doc_data in self.crawled_data.items(): # TODO .items()?
+        for doc_id, doc_data in self.crawled_data.items():
             tokens = doc_data.get("tokens")
-            # TODO fix this check
             if tokens is None:
                 continue
             # Reset visited values, since we are visiting a new document

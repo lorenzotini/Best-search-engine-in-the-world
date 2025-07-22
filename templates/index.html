@@ -10,18 +10,24 @@
 
 </head>
 <body>
-    <h1>Tübingen Search</h1>
+    <div style="text-align: center; padding: 2rem;">
+        <img src="/static/noCap_logo.png" alt="NoCap logo" style="width: 100px; margin-bottom: 1rem;" />
+
+        <h1 style="font-size: 2.5rem; font-weight: 700; margin: 0;">NoCap</h1>
+        <h2 style="font-size: 1.0rem; font-weight: 400; color: #888;">
+            Search the world, understand the world
+    </h2>
+    </div>
     <!-- Search Form -->
     <form method="post" class="search-form">
-        <input type="text" id="query-input" name="query" value="{{ query }}" placeholder="Search the world ..."
+        <input type="text" id="query-input" name="query" value="{{ query }}" placeholder="Search the world or Tübingen ..."
                class="search-input">
 
         <div class="sentiment-filter-wrapper">
             <select id="sentiment-filter" name="sentiment_filter" class="sentiment-filter">
                 <option value="">Sentiment labels</option>
-                <option value="positive" {% if sentiment_filter == 'positive' %}selected{% endif %}>Positive</option>
-                <option value="neutral" {% if sentiment_filter == 'neutral' %}selected{% endif %}>Neutral</option>
-                <option value="negative" {% if sentiment_filter == 'negative' %}selected{% endif %}>Negative</option>
+                <option value="positive" {% if sentiment_filter == 'objective' %}selected{% endif %}>objective</option>
+                <option value="neutral" {% if sentiment_filter == 'subjective' %}selected{% endif %}>subjective</option>
             </select>
             <span class="material-icons">arrow_drop_down</span>
         </div>
@@ -31,14 +37,17 @@
         </button>
     </form>
 
+    {% if search_duration is defined and search_duration %}
+        <div id="duration">{{ search_duration }} s</div>
+    {% endif %}
     {% for result in results %}
     <a href="{{ result.url }}" target="_blank" style="text-decoration: none; color: inherit;">
         <div class="result">
             
                 <h2>{{ result.title }}</h2>
                 <div class="meta">
-                    <div class="meta-date"><span class="material-icons">calendar_today</span>{{result.published_date}}</div>
-                    <div class="meta-origin"><span class="material-symbols-outlined">frame_source</span>{{result.origin}}</div>
+                    <!-- <div class="meta-date"><span class="material-icons">calendar_today</span>{{result.published_date}}</div> -->
+                    <div class="meta-origin"><span class="material-symbols-outlined">frame_source</span>{{result.url}}</div>
                 </div>
                 <p class="summary">{{ result.description }}<br>
                 <a href="{{ result.url }}" target="_blank"></a></p>
@@ -55,15 +64,17 @@
                     <!-- Progress bar container -->
                     <div class="progress-container">
                         <!-- Filled portion of the progress bar -->
-                            <div class="progress-fill" style="width: {{ result.sentiment_score }}%; background-color:
-                            {% if result.sentiment == 'positive' %}
-                                #bbf7d0; /* light green */
-                            {% elif result.sentiment == 'negative' %}
-                                #fecaca; /* light red */
-                            {% else %}
-                                #bfdbfe; /* light blue for neutral or default */
-                            {% endif %}
-                        ;">
+                            <div class="progress-fill"
+                            style="
+                                width: {{ result.sentiment_score }}%;
+                                {% if result.sentiment == 'objective' %}
+                                    background-color: #bbf7d0;
+                                {% elif result.sentiment == 'subjective' %}
+                                    background-color: #bfdbfe;
+                                {% else %}
+                                    background-color: #e5e7eb;
+                                {% endif %}
+                            ">
                             <!-- Text inside the progress bar -->
                             <span class="progress-text">{{result.sentiment}}</span>
                         </div>

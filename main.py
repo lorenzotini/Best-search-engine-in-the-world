@@ -1,35 +1,60 @@
 from Utils.legal_crawling import OfflineCrawler
 from Utils.indexer import Indexer
-from Utils.bm25 import BM25
 from Utils.hybrid_retrieval import HybridRetrieval
 from Utils.query_expander import QueryExpander
 from Utils.text_preprocessor import preprocess_text
+import time
+from transformers import pipeline
 
-
-def search(query_text: str, use_hybrid_model=False, use_query_expansion=True):
+def search(query_text: str, 
+           indexer: Indexer, 
+           hybrid_model:HybridRetrieval, 
+           use_query_expansion=True):
+    
+    start = time.time()
     query_tokens = preprocess_text(query_text, isQuery=True)
-
+    end = time.time()
+    print("Time to preprocess query: ", end - start)
+    
+    start = time.time()
     if use_query_expansion:
         print("\nExpanding query...\n")
-        expander = QueryExpander(max_synonyms=2)
-        expanded_tokens = expander.expand(query_tokens)
-        print("Expanded query tokens:", expanded_tokens)
+        expander = QueryExpander(max_synonyms=2, synonym_weight=0.25, original_weight=1.0)
+        weighted_tokens = expander.expand(query_tokens)
+        print("Expanded query tokens with weights:", weighted_tokens)
     else:
-        expanded_tokens = query_tokens
+        weighted_tokens = [(token, 1.0) for token in query_tokens]
 
-    candidates_ids = ind.get_union_candidates(expanded_tokens)
+    end = time.time()
+    print("Time to expand query: ", end - start)
+
+    original_terms = [term for term, weight in weighted_tokens if weight >= 1.0]
+    candidates_ids = indexer.get_union_candidates(original_terms)
+
+    print("candidate size = ", len(candidates_ids))
 
     if not candidates_ids:
         return []
+    
+    print("\nUsing hybrid model...\n")
+    start = time.time()
+    results = hybrid_model.retrieve(weighted_tokens, candidates_ids)
+    end = time.time()
+    print("Time to rank: ", end - start)
 
-    if use_hybrid_model:
-        print("\nUsing hybrid model...\n")
-        model = HybridRetrieval()
-        return model.retrieve(expanded_tokens)
-    else:
-        print("\nUsing BM25 model...\n")
-        model = BM25()
-        return model.bm25_ranking(expanded_tokens, candidates_ids)
+    return results
+
+def initialize_crawling(seeds):
+    print("Crawling...")
+    crawler = OfflineCrawler(seeds, max_depth=2)
+    crawler.run()
+    
+    #print("Indexing...")
+    # indexer = Indexer()
+    #indexer.run()
+
+    # print("Initializing models...")
+    # hybrid_model = HybridRetrieval()
 
 
 seeds = [
@@ -78,32 +103,13 @@ seeds = [
 ]
 
 
-crawler = OfflineCrawler(seeds, max_depth=2)
-crawler.run()
-
-# ind = Indexer()
-# ind.run()
-
-# def search(query_text: str, use_hybrid_model=False):
-#     query_tokens = preprocess_query(query_text)
-
-#     candidates_ids = ind.get_union_candidates(query_tokens)
-
-#     if not candidates_ids:
-#             return []
-     
-#     if use_hybrid_model:
-#         print("\nUsing hybrid model...\n")
-#         model = HybridRetrieval()
-#         return model.retrieve(query_tokens)
-#     else:
-#         print("\nUsing BM25 model...\n")
-#         model = BM25()
-#         return model.bm25_ranking(query_tokens, candidates_ids)
+# for r in search('food', ind, hybrid, use_query_expansion=True)[:10]:
+#     print(r)
 
 
-#for r in search('food', use_hybrid_model=True)[:10]:
-#    print(r)
+def init_search():
+    indexer = Indexer()
+    hybrid_model = HybridRetrieval()
+    sentiment_pipeline = pipeline("text-classification", model="GroNLP/mdebertav3-subjectivity-english", device=-1)
 
-# TODO whats inside the pkl docs if i re run the crawler and indexer?
-# TODO controllare che non sparisca il log file: ora scompare se runno crawl, interrupt, run indexer
+    return indexer, hybrid_model, sentiment_pipeline

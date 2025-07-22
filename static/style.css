@@ -130,6 +130,14 @@ body {
     box-shadow: 0 0 0 3px rgba(90, 138, 255, 0.3);
 }
 
+#duration {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 10px;
+    margin-top: -10px;
+    margin-left: 10px;
+}
+
 /* --- Result Card Styling --- */
 .result {
     width: 100%; /* Now explicitly match the form's 100% width */
@@ -239,7 +247,7 @@ a:hover {
 }
 
 .meta-origin {
-    background-color: #EFD2F6;
+    background-color: #f0e7f3;
     color: #000;
     border-radius:10px;
     padding: 0.2rem 0.5rem;
